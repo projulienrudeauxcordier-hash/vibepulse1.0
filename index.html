@@ -1,0 +1,3435 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>VibePulse Ultimate - Réseau Social & Multimédia 3.0</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js">
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stopAllPlayback();
+    });
+    window.addEventListener('pagehide', stopAllPlayback);
+
+</script>
+<style>
+    :root {
+      --bg-primary: #0f0f0f;
+      --bg-secondary: #212121;
+      --bg-hover: #383838;
+      --text-primary: #ffffff;
+      --text-secondary: #aaaaaa;
+      --accent-color: #ff0055;
+      --border-color: #303030;
+      --sidebar-width: 240px;
+    }
+ 
+    body.light-theme {
+      --bg-primary: #f9f9f9;
+      --bg-secondary: #ffffff;
+      --bg-hover: #e5e5e5;
+      --text-primary: #0f0f0f;
+      --text-secondary: #606060;
+      --border-color: #e0e0e0;
+    }
+ 
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Arial, sans-serif; }
+    body { background-color: var(--bg-primary); color: var(--text-primary); overflow-x: hidden; }
+ 
+    /* HEADER */
+    header {
+      position: fixed; top: 0; left: 0; right: 0; height: 60px;
+      background-color: var(--bg-primary); display: flex; align-items: center;
+      justify-content: space-between; padding: 0 16px; z-index: 1000;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .menu-btn { background: none; border: none; color: var(--text-primary); font-size: 20px; cursor: pointer; padding: 8px; border-radius: 50%; }
+    .menu-btn:hover { background-color: var(--bg-hover); }
+    .logo { display: flex; align-items: center; gap: 8px; font-size: 22px; font-weight: bold; color: var(--text-primary); text-decoration: none; cursor: pointer; }
+    .logo i { color: var(--accent-color); font-size: 26px; }
+    .header-center { flex: 0 1 600px; display: flex; align-items: center; }
+    .search-box { display: flex; width: 100%; position: relative; }
+    .search-box input { width: 100%; padding: 10px 16px; background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 40px 0 0 40px; color: var(--text-primary); outline: none; font-size: 15px; }
+    .search-box button { padding: 10px 20px; background-color: var(--bg-hover); border: 1px solid var(--border-color); border-left: none; border-radius: 0 40px 40px 0; color: var(--text-primary); cursor: pointer; }
+    
+    .search-suggestions { position: absolute; top: 45px; left: 0; right: 60px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; z-index: 3000; display: none; max-height: 200px; overflow-y: auto; }
+    .search-suggestion-item { padding: 8px 16px; font-size: 13px; cursor: pointer; border-bottom: 1px solid var(--border-color); }
+    .search-suggestion-item:hover { background: var(--bg-hover); }
+ 
+    .header-right { display: flex; align-items: center; gap: 8px; position: relative; }
+    .icon-btn { background: none; border: none; color: var(--text-primary); font-size: 18px; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; }
+    .icon-btn:hover { background-color: var(--bg-hover); }
+    .mobile-search-toggle { display: none; }
+    .badge { position: absolute; top: 2px; right: 2px; background-color: var(--accent-color); color: white; font-size: 10px; padding: 2px 5px; border-radius: 10px; font-weight: bold; }
+    
+    .pdp-btn {
+      width: 36px; height: 36px; border-radius: 50%; background-color: var(--accent-color);
+      color: white; display: flex; align-items: center; justify-content: center;
+      font-weight: bold; cursor: pointer; border: 2px solid transparent; text-transform: uppercase;
+      position: relative;
+    }
+    .pdp-btn:hover { border-color: var(--text-primary); }
+ 
+    .dropdown-menu {
+      position: absolute; top: 55px; right: 0; width: 320px; background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      display: none; flex-direction: column; z-index: 2000; overflow: hidden;
+    }
+    .dropdown-menu.active { display: flex; }
+    .dropdown-header { padding: 12px 16px; border-bottom: 1px solid var(--border-color); font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+    .notif-list { max-height: 350px; overflow-y: auto; }
+    .notif-item { padding: 12px 16px; border-bottom: 1px solid var(--border-color); display: flex; gap: 12px; cursor: pointer; font-size: 13px; }
+    .notif-item:hover { background-color: var(--bg-hover); }
+    .notif-item i { color: var(--accent-color); font-size: 16px; margin-top: 2px; }
+    .profile-info { padding: 16px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-color); }
+    .profile-item { padding: 12px 16px; display: flex; align-items: center; gap: 14px; color: var(--text-primary); text-decoration: none; cursor: pointer; font-size: 14px; }
+    .profile-item:hover { background-color: var(--bg-hover); }
+    .status-badge { width: 10px; height: 10px; background: #00ff66; border-radius: 50%; position: absolute; bottom: 0; right: 0; border: 2px solid var(--bg-secondary); }
+ 
+    .container { display: flex; margin-top: 60px; }
+    .sidebar-backdrop { display: none; position: fixed; top: 60px; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 850; }
+    .sidebar-backdrop.active { display: block; }
+    aside { width: var(--sidebar-width); background-color: var(--bg-primary); height: calc(100vh - 60px); position: fixed; top: 60px; left: 0; overflow-y: auto; padding: 12px; border-right: 1px solid var(--border-color); transition: transform 0.3s ease; z-index: 900; }
+    aside.hidden { transform: translateX(-100%); }
+    .nav-section { border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 12px; }
+    .nav-section-title { font-size: 13px; font-weight: bold; color: var(--text-secondary); padding: 8px 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .nav-link { display: flex; align-items: center; gap: 18px; padding: 10px 12px; color: var(--text-primary); text-decoration: none; border-radius: 10px; font-size: 14px; cursor: pointer; }
+    .nav-link:hover, .nav-link.active { background-color: var(--bg-hover); }
+    .nav-link.active { font-weight: bold; }
+    .nav-link i { font-size: 18px; width: 20px; text-align: center; }
+ 
+    main { margin-left: var(--sidebar-width); flex: 1; padding: 24px; min-height: calc(100vh - 60px); transition: margin-left 0.3s ease; }
+    main.expanded { margin-left: 0; }
+    .page { display: none; }
+    .page.active { display: block; }
+ 
+    /* STORIES VRAIES (STYLE INSTA/SNAP) */
+    .stories-container { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 25px; scrollbar-width: none; }
+    .stories-container::-webkit-scrollbar { display: none; }
+    .story-card { min-width: 75px; height: 110px; border-radius: 12px; background: var(--bg-secondary); border: 2px solid var(--accent-color); overflow: hidden; position: relative; cursor: pointer; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 6px; }
+    .story-card .story-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; filter: brightness(0.7); z-index: 1; }
+    .story-card span { font-size: 10px; font-weight: bold; color: white; z-index: 2; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90%; }
+    .story-card .story-avatar { position: absolute; top: 8px; width: 32px; height: 32px; border-radius: 50%; border: 2px solid white; z-index: 2; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; color: white; background: var(--accent-color); }
+ 
+    /* MODAL VISIONNEUSE DE STORY PLEIN ÉCRAN */
+    .story-viewer-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 5000; display: none; justify-content: center; align-items: center; }
+    .story-viewer-modal.active { display: flex; }
+    .story-viewer-box { width: 380px; height: 680px; background: #111; border-radius: 16px; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+    .story-progress-bar-container { display: flex; gap: 4px; padding: 12px 12px 0 12px; width: 100%; position: absolute; top: 0; left: 0; z-index: 10; }
+    .story-progress-bar { flex: 1; height: 3px; background: rgba(255,255,255,0.4); border-radius: 2px; overflow: hidden; }
+    .story-progress-fill { height: 100%; width: 0%; background: white; transition: width linear; }
+    .story-viewer-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 12px 10px 12px; z-index: 10; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); }
+    .story-viewer-content { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; z-index: 1; }
+    .story-viewer-footer { padding: 15px; z-index: 10; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); display: flex; gap: 8px; align-items: center; }
+ 
+    .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+    .video-card { background-color: var(--bg-secondary); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); transition: transform 0.2s; cursor: pointer; position: relative; }
+    .video-card:hover { transform: translateY(-4px); }
+    .thumb { width: 100%; height: 160px; background-color: var(--bg-hover); background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; font-size: 30px; color: var(--text-secondary); position: relative; }
+    .thumb .badge-type { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.8); font-size: 10px; padding: 3px 6px; border-radius: 4px; text-transform: uppercase; color: white; z-index: 2; }
+    .video-details { padding: 12px; }
+    .video-title { font-size: 14px; font-weight: bold; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .video-channel { font-size: 12px; color: var(--text-secondary); }
+ 
+    .home-section-container { margin-bottom: 30px; }
+    .home-section-title { font-size: 18px; font-weight: bold; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    
+    .home-shorts-row { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
+    .home-shorts-row::-webkit-scrollbar { display: none; }
+    .home-short-mini { min-width: 150px; height: 260px; background: #000; border-radius: 12px; overflow: hidden; position: relative; cursor: pointer; border: 1px solid var(--border-color); flex-shrink: 0; }
+    .home-short-mini video { width: 100%; height: 100%; object-fit: cover; }
+    .home-short-mini-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px; background: linear-gradient(transparent, rgba(0,0,0,0.8)); font-size: 12px; color: white; }
+ 
+    .home-ad-banner { background: linear-gradient(135deg, #2a1b3d, #1a1a2e); border: 1px solid var(--accent-color); border-radius: 12px; padding: 20px; display: flex; align-items: center; justify-content: space-between; margin: 20px 0; }
+ 
+    .video-layout { display: flex; gap: 24px; }
+    .video-main { flex: 1; }
+    .video-sidebar { width: 350px; display: flex; flex-direction: column; gap: 12px; }
+    .player-container { position: relative; width: 100%; height: 480px; background: #000; border-radius: 12px; overflow: hidden; }
+    .player-container iframe, .player-container video { width: 100%; height: 100%; border: none; }
+ 
+    .filter-sepia { filter: sepia(0.8); }
+    .filter-bw { filter: grayscale(1); }
+    .filter-cyber { filter: hue-rotate(180deg) contrast(1.4); }
+    .filter-invert { filter: invert(1); }
+    .filter-sepia, .filter-bw, .filter-cyber, .filter-invert { transition: filter .12s ease; }
+ 
+    .shorts-container { display: flex; justify-content: center; align-items: center; min-height: calc(100vh - 120px); user-select: none; }
+    .short-card { position: relative; width: 380px; height: 650px; background: #000; border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+    .short-card video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
+    .short-media { width: 100%; height: 100%; cursor: pointer; touch-action: pan-y; }
+    .short-media video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
+    .short-media iframe { width: 100%; height: 100%; border: none; pointer-events: auto; }
+    .home-short-mini img { width: 100%; height: 100%; object-fit: cover; }
+    .short-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); color: white; pointer-events: none; }
+    .short-overlay * { pointer-events: auto; }
+    .short-actions { position: absolute; right: 12px; bottom: 80px; display: flex; flex-direction: column; gap: 16px; align-items: center; z-index: 10; }
+    .short-btn { background: rgba(255,255,255,0.2); border: none; border-radius: 50%; width: 48px; height: 48px; color: white; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); transition: 0.2s; }
+    .short-btn:hover { background: rgba(255,255,255,0.4); transform: scale(1.1); }
+    .audio-badge { font-size: 12px; background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; cursor: pointer; border: 1px solid rgba(255,255,255,0.3); }
+ 
+    .short-ad-badge { position: absolute; top: 15px; left: 15px; background: #ffaa00; color: #000; font-size: 11px; font-weight: bold; padding: 4px 10px; border-radius: 20px; z-index: 10; display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+ 
+    .shorts-nav-hint { position: absolute; top: 15px; right: 15px; z-index: 10; background: rgba(0,0,0,0.5); color: white; font-size: 11px; padding: 5px 10px; border-radius: 14px; display: flex; align-items: center; gap: 6px; backdrop-filter: blur(4px); pointer-events: none; }
+ 
+    .shorts-comments-panel { position: absolute; bottom: 0; left: 0; right: 0; height: 65%; background: var(--bg-secondary); border-radius: 16px 16px 0 0; z-index: 20; transform: translateY(100%); transition: transform 0.3s ease; display: flex; flex-direction: column; padding: 16px; border-top: 1px solid var(--border-color); }
+    .shorts-comments-panel.open { transform: translateY(0); }
+    .shorts-comments-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 12px; }
+    .shorts-comments-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 13px; }
+ 
+    .chat-widget { position: fixed; bottom: 20px; right: 20px; width: 360px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); z-index: 2500; display: none; flex-direction: column; overflow: hidden; }
+    .chat-widget.active { display: flex; }
+    .chat-header { background: var(--bg-hover); padding: 12px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+    .chat-contact-bar { padding: 8px 12px; background: var(--bg-primary); border-bottom: 1px solid var(--border-color); display: flex; gap: 8px; align-items: center; overflow-x: auto; scrollbar-width: none; }
+    .chat-contact-bar::-webkit-scrollbar { display: none; }
+    .chat-contact-item { padding: 4px 10px; background: var(--bg-hover); border-radius: 15px; font-size: 11px; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 4px; }
+    .chat-contact-item.active { background: var(--accent-color); color: white; font-weight: bold; }
+    .chat-messages { height: 280px; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+    .msg { max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 13px; word-break: break-word; }
+    .msg.sent { background: var(--accent-color); color: white; align-self: flex-end; }
+    .msg.received { background: var(--bg-hover); color: white; align-self: flex-start; }
+    .msg.system { background: transparent; color: var(--text-secondary); align-self: center; font-size: 11px; font-style: italic; }
+    .chat-input-area { display: flex; padding: 8px; border-top: 1px solid var(--border-color); gap: 6px; }
+    .chat-input-area input { flex: 1; padding: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: white; border-radius: 20px; outline: none; }
+ 
+    .mini-player { position: fixed; bottom: 20px; left: 20px; width: 280px; height: 160px; background: #000; border-radius: 12px; overflow: hidden; z-index: 3000; box-shadow: 0 5px 20px rgba(0,0,0,0.8); display: none; border: 1px solid var(--border-color); }
+    .mini-player.active { display: block; }
+ 
+    .action-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+    .btn-group { display: flex; background: var(--bg-hover); border-radius: 20px; overflow: hidden; }
+    .btn-action { background: none; border: none; color: var(--text-primary); padding: 8px 16px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: bold; font-size: 13px; }
+    .btn-action:hover { background: rgba(255,255,255,0.1); }
+    .btn-action.liked { color: var(--accent-color); }
+ 
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 3000; }
+    .modal.active { display: flex; }
+    .modal-content { background-color: var(--bg-secondary); border-radius: 12px; width: 480px; padding: 24px; border: 1px solid var(--border-color); max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .btn-primary { background: var(--accent-color); color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-size: 13px; color: var(--text-secondary); }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; color: white; outline: none; }
+    .form-group input[type="file"] { padding: 8px; cursor: pointer; }
+ 
+    .call-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111; z-index: 4000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+    .call-overlay.active { display: flex; }
+    .call-avatar { width: 120px; height: 120px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: bold; margin-bottom: 20px; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 0, 85, 0.4); } 70% { box-shadow: 0 0 0 20px rgba(255, 0, 85, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 0, 85, 0); } }
+    .call-type-label { color: var(--text-secondary); font-size: 12px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+ 
+    .comment-box { display: flex; gap: 12px; margin: 20px 0; }
+    .comment-box input { flex: 1; padding: 10px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 20px; color: white; outline: none; }
+    .comment-item { display: flex; gap: 12px; margin-bottom: 15px; font-size: 14px; }
+ 
+    /* ÉCRAN DE CONNEXION */
+    .auth-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(135deg, #0f0f0f, #1a0a12);
+      z-index: 7000; display: none; align-items: center; justify-content: center; padding: 20px;
+    }
+    .auth-overlay.active { display: flex; }
+    .auth-box {
+      width: 380px; max-width: 100%; background: var(--bg-secondary); border: 1px solid var(--border-color);
+      border-radius: 16px; padding: 32px 28px; box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    }
+    .auth-logo { display: flex; align-items: center; gap: 8px; justify-content: center; font-size: 26px; font-weight: bold; color: var(--text-primary); margin-bottom: 6px; }
+    .auth-logo i { color: var(--accent-color); }
+    .auth-subtitle { text-align: center; color: var(--text-secondary); font-size: 13px; margin-bottom: 20px; }
+    .auth-tabs { display: flex; background: var(--bg-primary); border-radius: 10px; padding: 4px; margin-bottom: 18px; }
+    .auth-tab { flex: 1; background: none; border: none; color: var(--text-secondary); padding: 8px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 13px; }
+    .auth-tab.active { background: var(--accent-color); color: white; }
+    .auth-error { background: rgba(255,0,85,0.15); border: 1px solid var(--accent-color); color: #ff6b93; font-size: 12px; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; }
+    .auth-divider { display: flex; align-items: center; text-align: center; color: var(--text-secondary); font-size: 12px; margin: 16px 0; }
+    .auth-divider::before, .auth-divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border-color); }
+    .auth-divider span { padding: 0 10px; }
+    .btn-google { width: 100%; padding: 11px; background: white; color: #333; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; }
+    .btn-google:hover { opacity: 0.9; }
+    .auth-note { font-size: 11px; color: var(--text-secondary); text-align: center; margin-top: 16px; line-height: 1.4; }
+ 
+    @media (max-width: 1000px) {
+      .video-layout { flex-direction: column; }
+      .video-sidebar { width: 100%; }
+    }
+ 
+    /* RESPONSIVE MOBILE */
+    @media (max-width: 900px) {
+      aside { transform: translateX(-100%); box-shadow: 4px 0 25px rgba(0,0,0,0.6); }
+      aside.mobile-open { transform: translateX(0); }
+      aside.hidden { transform: translateX(-100%); }
+      main, main.expanded { margin-left: 0; }
+    }
+ 
+    @media (max-width: 700px) {
+      .header-center { display: none; }
+      .header-center.mobile-search-active {
+        display: flex; position: fixed; top: 60px; left: 0; right: 0;
+        background: var(--bg-primary); padding: 10px 12px; z-index: 999;
+        border-bottom: 1px solid var(--border-color); flex: none;
+      }
+      .mobile-search-toggle { display: flex; }
+      .video-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+      .player-container { height: 220px; }
+      .action-bar { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .shorts-container { min-height: calc(100vh - 60px); padding: 10px 0; }
+      .short-card { width: 100%; max-width: 420px; height: calc(100vh - 90px); border-radius: 0; }
+      .story-viewer-box { width: 100vw; height: 100vh; border-radius: 0; max-width: none; }
+      .chat-widget { width: 100%; height: 100%; bottom: 0; right: 0; top: 0; border-radius: 0; }
+      .chat-messages { height: calc(100% - 150px); }
+      .modal-content { width: 92vw; padding: 18px; }
+      .home-short-mini { min-width: 120px; height: 210px; }
+      main { padding: 16px; }
+    }
+ 
+    @media (max-width: 480px) {
+      header { padding: 0 6px; gap: 2px; }
+      .header-left { gap: 6px; flex-shrink: 0; }
+      .header-right { gap: 2px; flex-shrink: 0; }
+      .icon-btn { width: 32px; height: 32px; font-size: 14px; }
+      .pdp-btn { width: 30px; height: 30px; font-size: 11px; flex-shrink: 0; }
+      .logo { font-size: 18px; }
+      .logo i { font-size: 20px; }
+      /* On cache le texte du logo pour laisser toute la place aux icônes, le profil doit toujours être visible */
+      .logo span.logo-text { display: none; }
+      /* Ces deux actions existent déjà dans le menu latéral : on les cache ici pour que le profil ne soit jamais poussé hors écran */
+      .icon-btn[title="Lancer un Live"], .icon-btn[title="Shorts"] { display: none; }
+      .auth-box { padding: 24px 18px; }
+      .dropdown-menu { width: 90vw; right: -30px; }
+    }
+
+    @media (max-width: 360px) {
+      /* Écrans très étroits : on retire aussi "Publier" de la barre du haut (déjà accessible via le + du menu latéral n'existe pas encore, donc on garde Publier mais on cache Messages) */
+      .icon-btn[title="Messages"] { display: none; }
+    }
+  
+    /* DÉMARRAGE PROGRESSIF — ne disparaît qu'une fois le rendu initial terminé */
+    #vp-startup-loader {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: var(--bg-primary, #0b0b0f);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 14px;
+      color: var(--text-primary, #fff);
+      font-family: inherit;
+      transition: opacity .25s ease;
+    }
+    #vp-startup-loader.hidden { opacity: 0; pointer-events: none; }
+    #vp-startup-loader .loader-box { width: min(420px, 82vw); text-align: center; }
+    #vp-startup-loader .loader-title { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+    #vp-startup-loader .loader-status { font-size: 13px; opacity: .75; min-height: 20px; }
+    #vp-startup-loader .loader-track {
+      width: 100%; height: 8px; border-radius: 999px; overflow: hidden;
+      background: rgba(255,255,255,.12); margin-top: 12px;
+    }
+    #vp-startup-loader .loader-bar {
+      width: 0%; height: 100%; border-radius: inherit;
+      background: var(--accent-color, #ff3366);
+      transition: width .18s ease;
+    }
+    #vp-startup-loader .loader-count { font-size: 12px; opacity: .6; margin-top: 7px; }
+
+
+    .vp-video-stage { position:relative; width:100%; height:100%; background:#000; }
+    .vp-video-loading {
+      position:absolute; inset:0; z-index:50; display:flex; align-items:center; justify-content:center;
+      flex-direction:column; gap:10px; background:rgba(0,0,0,.92); color:#fff; text-align:center;
+    }
+    .vp-video-loading.hidden { display:none; }
+    .vp-video-spinner {
+      width:34px; height:34px; border:4px solid rgba(255,255,255,.2);
+      border-top-color:var(--accent-color,#ff0055); border-radius:50%;
+      animation:vpSpin .8s linear infinite;
+    }
+    @keyframes vpSpin { to { transform:rotate(360deg); } }
+    .vp-video-loading small { opacity:.7; font-size:12px; max-width:280px; }
+    .vp-ad-slot {
+      margin:14px 0; border:1px solid var(--border-color);
+      background:linear-gradient(135deg,#1b1b22,#111117);
+      border-radius:12px; padding:12px; color:var(--text-primary);
+      display:flex; align-items:center; gap:12px;
+    }
+    .vp-ad-badge {
+      background:#f5c542; color:#111; font-size:10px; font-weight:800;
+      padding:4px 7px; border-radius:5px; flex:none;
+    }
+    .vp-ad-body { flex:1; min-width:0; }
+    .vp-ad-title { font-weight:800; font-size:13px; }
+    .vp-ad-text { font-size:11px; color:var(--text-secondary); margin-top:3px; }
+    .vp-ad-btn {
+      border:0; border-radius:18px; padding:7px 12px; font-size:11px;
+      background:var(--accent-color); color:#fff; font-weight:700; cursor:pointer;
+    }
+
+</style>
+</head>
+<body>
+
+  <div id="vp-startup-loader" aria-live="polite">
+    <div class="loader-box">
+      <div class="loader-title">VibePulse</div>
+      <div class="loader-status" id="vp-loader-status">Préparation du lancement…</div>
+      <div class="loader-track"><div class="loader-bar" id="vp-loader-bar"></div></div>
+      <div class="loader-count" id="vp-loader-count">Initialisation</div>
+    </div>
+  </div>
+
+  
+  <!-- ÉCRAN DE CONNEXION (première visite) -->
+  <div class="auth-overlay active" id="auth-overlay">
+    <div class="auth-box">
+      <div class="auth-logo"><i class="fa-solid fa-bolt"></i> VibePulse</div>
+      <p class="auth-subtitle">Connecte-toi pour accéder à ton compte</p>
+ 
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')" type="button">Connexion</button>
+        <button class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')" type="button">Créer un compte</button>
+      </div>
+ 
+      <div class="auth-error" id="auth-error" style="display:none;"></div>
+ 
+      <div class="form-group" id="auth-name-group" style="display:none;">
+        <label>Nom affiché</label>
+        <input type="text" id="auth-name" placeholder="Ex: Alex Martin">
+      </div>
+      <div class="form-group">
+        <label>Adresse email</label>
+        <input type="email" id="auth-email" placeholder="toi@exemple.com">
+      </div>
+      <div class="form-group">
+        <label>Mot de passe</label>
+        <input type="password" id="auth-password" placeholder="••••••••" onkeyup="if(event.key === 'Enter') handleAuthSubmit()">
+      </div>
+ 
+      <button class="btn-primary" id="auth-submit-btn" style="width:100%; padding:12px;" onclick="handleAuthSubmit()">Se connecter</button>
+ 
+      <div class="auth-divider"><span>ou</span></div>
+ 
+      <button class="btn-google" onclick="handleGoogleAuth()" type="button">
+        <i class="fa-brands fa-google"></i> Continuer avec Google
+      </button>
+ 
+      <p class="auth-note">Démo autonome : la connexion (email ou Google) est simulée et gérée localement dans ton navigateur, sans serveur externe.</p>
+    </div>
+  </div>
+ 
+  <header>
+    <div class="header-left">
+      <button class="menu-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <a class="logo" onclick="showPage('home')"><i class="fa-solid fa-bolt"></i> <span class="logo-text">VibePulse</span></a>
+    </div>
+ 
+    <div class="header-center" id="header-center-box">
+      <div class="search-box">
+        <input type="text" id="search-input" placeholder="Rechercher une vidéo, un short ou un créateur..." oninput="handleSearchInput()" onkeyup="if(event.key === 'Enter') handleSearch()">
+        <button onclick="handleSearch()"><i class="fa-solid fa-magnifying-glass"></i></button>
+        <div class="search-suggestions" id="search-suggestions"></div>
+      </div>
+    </div>
+ 
+    <div class="header-right">
+      <button class="icon-btn mobile-search-toggle" title="Rechercher" onclick="toggleMobileSearch()"><i class="fa-solid fa-magnifying-glass"></i></button>
+      <button class="icon-btn" title="Lancer un Live" onclick="showPage('live')"><i class="fa-solid fa-tower-broadcast" style="color: red;"></i></button>
+      <button class="icon-btn" title="Shorts" onclick="showPage('shorts')"><i class="fa-solid fa-bolt-lightning" style="color: #ffaa00;"></i></button>
+      <button class="icon-btn" title="Publier du contenu" onclick="openModal('create-modal')"><i class="fa-solid fa-plus-circle" style="color: var(--accent-color); font-size: 22px;"></i></button>
+      <button class="icon-btn" title="Messages" onclick="openFriendsList()"><i class="fa-solid fa-paper-plane"></i></button>
+      
+      <button class="icon-btn" onclick="toggleDropdown('notif-dropdown', event)" title="Notifications">
+        <i class="fa-solid fa-bell"></i>
+        <span class="badge" id="notif-count">1</span>
+      </button>
+      
+      <div id="notif-dropdown" class="dropdown-menu">
+        <div class="dropdown-header"><span>Notifications</span></div>
+        <div class="notif-list" id="notif-list">
+          <div class="notif-item">
+            <i class="fa-solid fa-bullhorn"></i>
+            <div><strong>VibePulse :</strong> Toutes les anciennes vidéos et comptes ont été nettoyés. Prêt pour un nouveau départ !</div>
+          </div>
+        </div>
+      </div>
+ 
+      <div class="pdp-btn" id="current-pdp" onclick="toggleDropdown('profile-dropdown', event)">
+        UP
+        <div class="status-badge" title="En ligne"></div>
+      </div>
+ 
+      <div id="profile-dropdown" class="dropdown-menu">
+        <div class="profile-info">
+          <div class="pdp-btn" id="dropdown-pdp">UP</div>
+          <div>
+            <div id="user-name" style="font-weight: bold;">Mon Compte</div>
+            <div id="user-handle" style="font-size: 12px; color: var(--text-secondary);">@mon_compte</div>
+            <span style="font-size: 10px; background: #00ff66; color: #000; padding: 2px 6px; border-radius: 10px; font-weight: bold; margin-top: 4px; display: inline-block;">En ligne</span>
+          </div>
+        </div>
+        <a class="profile-item" onclick="openChannelView(currentChannel.id)"><i class="fa-solid fa-user-gear"></i> Ma Chaîne</a>
+        <a class="profile-item" onclick="openModal('studio-modal')"><i class="fa-solid fa-chart-line"></i> Studio Créateur (Stats)</a>
+        <a class="profile-item" onclick="openModal('account-modal')"><i class="fa-solid fa-users-gear"></i> Changer de compte</a>
+        <a class="profile-item" onclick="showPage('history')"><i class="fa-solid fa-clock-rotate-left"></i> Mon Historique</a>
+        <a class="profile-item" onclick="toggleTheme()"><i class="fa-solid fa-moon"></i> Thème Sombre / Clair</a>
+        <a class="profile-item" onclick="alert('Vos données sont sécurisées et enregistrées en local (LocalStorage).')"><i class="fa-solid fa-shield-halved"></i> Confidentialité & Données</a>
+        <a class="profile-item" id="vp-call-server-help" onclick="prompt('Adresse du serveur de signalisation WebRTC (ex: https://mon-serveur.onrender.com) :', localStorage.getItem('vp_signaling_server_url') || '')"><i class="fa-solid fa-server"></i> Serveur appels</a>
+        <a class="profile-item" onclick="publishLocalCatalogToServer()"><i class="fa-solid fa-cloud-arrow-up"></i> Publier mon catalogue</a>
+        <a class="profile-item" onclick="logoutUser()"><i class="fa-solid fa-right-from-bracket"></i> Se déconnecter</a>
+      </div>
+    </div>
+  </header>
+ 
+  <div class="container">
+    <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeMobileSidebarIfOpen()"></div>
+ 
+    <aside id="sidebar">
+      <div class="nav-section">
+        <a class="nav-link active" onclick="showPage('home', this)"><i class="fa-solid fa-house"></i> Accueil</a>
+        <a class="nav-link" onclick="showPage('shorts', this)"><i class="fa-solid fa-bolt-lightning"></i> Shorts</a>
+        <a class="nav-link" onclick="showPage('subscriptions', this)"><i class="fa-solid fa-layer-group"></i> Abonnements</a>
+        <a class="nav-link" onclick="showPage('live', this)"><i class="fa-solid fa-tower-broadcast"></i> En Direct</a>
+      </div>
+ 
+      <div class="nav-section">
+        <div class="nav-section-title">Vous</div>
+        <a class="nav-link" onclick="openChannelView(currentChannel.id, this)"><i class="fa-solid fa-circle-user"></i> Ma Chaîne</a>
+        <a class="nav-link" onclick="showPage('history', this)"><i class="fa-solid fa-clock-rotate-left"></i> Historique</a>
+        <a class="nav-link" onclick="showPage('liked', this)"><i class="fa-solid fa-thumbs-up"></i> Vidéos "J'aime"</a>
+        <a class="nav-link" onclick="openFriendsList()"><i class="fa-solid fa-comments"></i> Amis & Messages</a>
+      </div>
+ 
+      <div class="nav-section">
+        <div class="nav-section-title">Explorer</div>
+        <a class="nav-link" onclick="filterCategory('Trending', this)"><i class="fa-solid fa-fire"></i> Tendances</a>
+        <a class="nav-link" onclick="filterCategory('Musique', this)"><i class="fa-solid fa-music"></i> Musique</a>
+        <a class="nav-link" onclick="filterCategory('Gaming', this)"><i class="fa-solid fa-gamepad"></i> Jeux vidéo</a>
+      </div>
+    </aside>
+ 
+    <main id="main-content">
+      
+      <div id="page-home" class="page active">
+        <div class="stories-container" id="stories-container"></div>
+        <h2 style="margin-bottom: 20px;" id="home-title">Recommandations exclusives</h2>
+        <div id="structured-home-container"></div>
+      </div>
+ 
+      <div id="page-shorts" class="page">
+        <div class="shorts-container" id="shorts-scroll-area">
+          <div class="short-card">
+            <div class="short-ad-badge" id="short-ad-badge">SPONSORISÉ 🎯</div>
+            <div class="shorts-nav-hint"><i class="fa-solid fa-arrows-up-down"></i> Molette / Glisser pour changer</div>
+            <div class="short-media" id="short-media-container" onclick="toggleShortAudio()"></div>
+            <div class="short-overlay">
+              <h4 id="short-channel-name">@channel</h4>
+              <p id="short-title-text" style="font-size: 13px; margin-top: 4px;">Titre du short</p>
+              <div class="audio-badge" onclick="remixSound()">
+                <i class="fa-solid fa-compact-disc fa-spin"></i>
+                <span id="short-audio-track">Son original - Cliquez pour Remixer</span>
+              </div>
+            </div>
+ 
+            <div class="short-actions">
+              <button class="short-btn" onclick="prevShort()" title="Short précédent">
+                <i class="fa-solid fa-arrow-up"></i>
+              </button>
+              <button class="short-btn" onclick="toggleShortAudio()" title="Activer / Couper le Son">
+                <i class="fa-solid fa-volume-high" id="short-audio-icon"></i>
+              </button>
+              <button class="short-btn" onclick="likeShort()" title="J'aime">
+                <i class="fa-solid fa-heart" id="short-like-icon"></i>
+              </button>
+              <button class="short-btn" onclick="toggleShortComments()" title="Commentaires">
+                <i class="fa-solid fa-comment"></i>
+              </button>
+              <button class="short-btn" onclick="shareCurrentShort()" title="Partager">
+                <i class="fa-solid fa-share"></i>
+              </button>
+              <button class="short-btn" onclick="remixSound()" title="Remixer ce son">
+                <i class="fa-solid fa-music"></i>
+              </button>
+              <button class="short-btn" onclick="nextShort()" title="Short suivant">
+                <i class="fa-solid fa-arrow-down"></i>
+              </button>
+            </div>
+ 
+            <div class="shorts-comments-panel" id="shorts-comments-panel">
+              <div class="shorts-comments-header">
+                <span>Commentaires du Short</span>
+                <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="toggleShortComments()"></i>
+              </div>
+              <div class="shorts-comments-list" id="shorts-comments-list"></div>
+              <div style="display:flex; gap:6px; margin-top:10px;">
+                <input type="text" id="short-comment-input" placeholder="Ajouter un commentaire..." style="flex:1; padding:8px 12px; background:var(--bg-primary); border:1px solid var(--border-color); color:white; border-radius:20px; outline:none; font-size:12px;">
+                <button class="btn-primary" style="padding:6px 12px;" onclick="addShortComment()"><i class="fa-solid fa-paper-plane"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+ 
+      <div id="page-live" class="page">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+          <h2 id="live-page-main-title">Session En Direct 🔴</h2>
+          <button class="btn-primary" onclick="startOwnWebcamLive()"><i class="fa-solid fa-video"></i> Lancer mon propre Live Webcam</button>
+        </div>
+        <div class="video-layout">
+          <div class="video-main">
+            <div class="player-container" id="live-player-container">
+              <video id="live-video-element" controls autoplay loop style="width:100%; height:100%; object-fit:cover;">
+                <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" type="video/mp4">
+              </video>
+            </div>
+            <h3 id="live-stream-title" style="margin-top:10px;">DIRECT : Session Live Communautaire</h3>
+          </div>
+          <div class="video-sidebar">
+            <h4>Chat du Direct</h4>
+            <div style="height: 380px; background: var(--bg-secondary); border-radius:8px; border:1px solid var(--border-color); padding:10px; overflow-y:auto; font-size:13px; display:flex; flex-direction:column; gap:8px;" id="live-chat">
+              <p><strong>@vibe_user:</strong> Bienvenue sur le nouveau réseau ! 🔥</p>
+            </div>
+            <div style="display:flex; gap:6px; margin-top:8px;">
+              <input type="text" id="live-chat-input" placeholder="Envoyer un message au live..." style="flex:1; padding:8px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:20px; color:white; outline:none;" onkeyup="if(event.key === 'Enter') sendLiveChatMessage()">
+              <button class="btn-primary" onclick="sendLiveChatMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+ 
+      <div id="page-channel" class="page">
+        <div style="background: var(--bg-secondary); border-radius: 12px; padding: 24px; margin-bottom: 24px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+          <div style="display: flex; align-items: center; gap: 20px;">
+            <div class="pdp-btn" id="channel-page-pdp" style="width: 80px; height: 80px; font-size: 32px;">UP</div>
+            <div>
+              <h1 id="channel-page-name">Nom de Chaîne</h1>
+              <p id="channel-page-handle" style="color: var(--text-secondary);">@handle • <span id="channel-sub-count">0</span> abonnés</p>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <button id="channel-page-sub-btn" class="btn-primary" style="display:none;" onclick="toggleSubscribeFromProfile()">S'abonner</button>
+            <button id="channel-msg-btn" class="btn-primary" style="display:none; background: var(--bg-hover);" onclick="startChatWithActiveChannel()"><i class="fa-solid fa-paper-plane"></i> Message</button>
+            <button id="channel-call-btn" class="btn-primary" style="display:none; background: #00aa55;" onclick="startCallFromProfile()"><i class="fa-solid fa-phone"></i> Appeler</button>
+          </div>
+        </div>
+        <h3>Vidéos de la chaîne</h3>
+        <div class="video-grid" id="channel-videos-grid" style="margin-top: 15px;"></div>
+ 
+        <div id="channel-shorts-section" style="display:none;">
+          <h3 style="margin-top:30px;">Shorts de la chaîne</h3>
+          <div class="home-shorts-row" id="channel-shorts-row" style="margin-top:15px;"></div>
+        </div>
+      </div>
+ 
+      <div id="page-subscriptions" class="page">
+        <h2>Abonnements</h2>
+        <div class="video-grid" id="subscriptions-grid" style="margin-top: 20px;"></div>
+      </div>
+ 
+      <div id="page-history" class="page">
+        <h2>Historique de visionnage</h2>
+        <div class="video-grid" id="history-grid" style="margin-top:20px;"></div>
+      </div>
+ 
+      <div id="page-liked" class="page">
+        <h2>Vidéos "J'aime"</h2>
+        <div class="video-grid" id="liked-grid" style="margin-top:20px;"></div>
+      </div>
+ 
+      <div id="page-video" class="page">
+        <div class="video-layout">
+          <div class="video-main">
+            <div class="player-container" id="player-container"></div>
+            
+            <div style="display:flex; gap:10px; margin-top:10px; align-items:center; overflow-x:auto; padding-bottom:5px;">
+              <span style="font-size:12px; color:var(--text-secondary);">Effets vidéo :</span>
+              <button class="btn-action" style="background:var(--bg-hover); font-size:11px;" onclick="applyVideoFilter('')">Normal</button>
+              <button class="btn-action" style="background:var(--bg-hover); font-size:11px;" onclick="applyVideoFilter('filter-sepia')">Rétro</button>
+              <button class="btn-action" style="background:var(--bg-hover); font-size:11px;" onclick="applyVideoFilter('filter-bw')">N&B</button>
+              <button class="btn-action" style="background:var(--bg-hover); font-size:11px;" onclick="applyVideoFilter('filter-cyber')">Cyber Neon</button>
+              <button class="btn-action" style="background:var(--bg-hover); font-size:11px;" onclick="applyVideoFilter('filter-invert')">Inversé</button>
+            </div>
+ 
+            <h2 id="viewing-video-title" style="margin-top: 10px;">Titre de la vidéo</h2>
+            
+            <div class="action-bar">
+              <div style="display: flex; align-items: center; gap: 12px; cursor: pointer;" onclick="openChannelView(currentViewingVideo.channelId)">
+                <div class="pdp-btn" id="viewing-channel-pdp">CH</div>
+                <div>
+                  <h4 id="viewing-channel-name">Nom chaîne</h4>
+                  <span style="font-size: 11px; color: var(--text-secondary);" id="viewing-channel-subs">0 abonnés</span>
+                </div>
+                <button class="btn-primary" id="viewing-sub-btn" style="margin-left: 15px; padding: 6px 14px; font-size: 12px;" onclick="event.stopPropagation(); toggleSubscribeFromPlayer()">S'abonner</button>
+                <button class="btn-primary" id="viewing-msg-btn" style="padding: 6px 14px; font-size: 12px; background: var(--bg-hover);" onclick="event.stopPropagation(); startChatWithChannelName(currentViewingVideo.channel)"><i class="fa-solid fa-paper-plane"></i> Message</button>
+                <button class="btn-primary" id="viewing-call-btn" style="padding: 6px 14px; font-size: 12px; background: #00aa55;" onclick="event.stopPropagation(); startCall(currentViewingVideo.channel)"><i class="fa-solid fa-phone"></i> Appeler</button>
+              </div>
+ 
+              <div class="btn-group">
+                <button class="btn-action" id="like-btn-action" onclick="toggleLikeCurrentVideo()">
+                  <i class="fa-solid fa-thumbs-up" id="like-icon"></i> <span id="like-count">0</span>
+                </button>
+                <button class="btn-action" onclick="shareCurrentVideo()">
+                  <i class="fa-solid fa-share"></i> Partager
+                </button>
+              </div>
+            </div>
+ 
+            <div class="comment-box">
+              <div class="pdp-btn" id="comment-user-pdp">UP</div>
+              <input type="text" id="comment-input" placeholder="Ajouter un commentaire..." onkeyup="if(event.key === 'Enter') postComment()">
+              <button class="btn-primary" onclick="postComment()">Envoyer</button>
+            </div>
+ 
+            <div id="comments-list"></div>
+          </div>
+ 
+          <div class="video-sidebar" id="related-videos-sidebar">
+            <h3>Vidéos suggérées</h3>
+          </div>
+        </div>
+      </div>
+ 
+    </main>
+  </div>
+ 
+  <div class="call-overlay" id="call-overlay">
+    <div class="call-type-label" id="call-type-label">Appel sortant</div>
+    <div class="call-avatar" id="call-avatar-circle">VP</div>
+    <h2 id="call-user-name" style="color:white; margin-bottom:8px;">Appel en cours...</h2>
+    <p id="call-status-text" style="color:var(--text-secondary); font-size:14px; margin-bottom:20px;">Sonne...</p>
+    <audio id="call-remote-audio" autoplay></audio>
+ 
+    <div id="call-outgoing-controls" style="display:flex; gap:20px;">
+      <button class="btn-primary" style="background:#ff0044; width:60px; height:60px; border-radius:50%; font-size:20px; display:flex; align-items:center; justify-content:center;" onclick="endCall()" title="Raccrocher">
+        <i class="fa-solid fa-phone-slash"></i>
+      </button>
+    </div>
+ 
+    <div id="call-incoming-controls" style="display:none; gap:30px;">
+      <button class="btn-primary" style="background:#00aa55; width:60px; height:60px; border-radius:50%; font-size:20px; display:flex; align-items:center; justify-content:center;" onclick="acceptIncomingCall()" title="Répondre">
+        <i class="fa-solid fa-phone"></i>
+      </button>
+      <button class="btn-primary" style="background:#ff0044; width:60px; height:60px; border-radius:50%; font-size:20px; display:flex; align-items:center; justify-content:center;" onclick="declineIncomingCall()" title="Refuser">
+        <i class="fa-solid fa-phone-slash"></i>
+      </button>
+    </div>
+  </div>
+ 
+  <div class="story-viewer-modal" id="story-viewer-modal" onclick="closeStoryViewer(event)">
+    <div class="story-viewer-box" id="story-viewer-box" onclick="event.stopPropagation()">
+      <div class="story-progress-bar-container" id="story-progress-container"></div>
+      <div class="story-viewer-header">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div class="pdp-btn" id="story-viewer-pdp" style="width:32px; height:32px; font-size:12px;">US</div>
+          <span id="story-viewer-name" style="font-size:13px; font-weight:bold; color:white;">Nom</span>
+        </div>
+        <i class="fa-solid fa-xmark" style="color:white; cursor:pointer; font-size:18px;" onclick="closeStoryViewerDirect()"></i>
+      </div>
+      <div class="story-viewer-content" id="story-viewer-content-bg">
+        <p id="story-viewer-caption" style="color:white; font-size:16px; font-weight:bold; text-align:center; padding:20px; background:rgba(0,0,0,0.5); border-radius:12px; z-index:2; max-width:80%;"></p>
+      </div>
+      <div class="story-viewer-footer">
+        <input type="text" id="story-reply-input" placeholder="Envoyer un message..." style="flex:1; padding:10px 14px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.3); border-radius:20px; color:white; outline:none; font-size:13px;" onkeyup="if(event.key === 'Enter') replyToStory()">
+        <button class="btn-primary" style="padding:8px 14px;" onclick="replyToStory()"><i class="fa-solid fa-paper-plane"></i></button>
+      </div>
+    </div>
+  </div>
+ 
+  <div class="chat-widget" id="chat-widget">
+    <div class="chat-header">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span id="chat-title">Messagerie</span>
+        <button onclick="promptAddFriend()" style="background:var(--accent-color); border:none; color:white; font-size:11px; padding:2px 8px; border-radius:10px; cursor:pointer;" title="Ajouter un contact/ami">+ Ami</button>
+      </div>
+      <div style="display:flex; gap:12px; align-items:center;">
+        <i class="fa-solid fa-phone" style="cursor:pointer; font-size:14px; color:#00ff66;" onclick="startCallCurrentContact()" title="Lancer un appel audio/vidéo"></i>
+        <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeChatWidget()"></i>
+      </div>
+    </div>
+    
+    <div class="chat-contact-bar" id="chat-contact-bar"></div>
+ 
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-input-area">
+      <input type="text" id="chat-widget-input" placeholder="Écrire un message..." onkeyup="if(event.key === 'Enter') sendChatMessage()">
+      <button class="btn-primary" style="padding:6px 12px;" onclick="sendChatMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </div>
+ 
+  <div class="mini-player" id="mini-player">
+    <div style="position: absolute; top: 5px; right: 5px; z-index: 3001; background: rgba(0,0,0,0.6); padding: 4px; border-radius: 50%; cursor: pointer;" onclick="closeMiniPlayer()">
+      <i class="fa-solid fa-xmark" style="color: white; font-size: 12px;"></i>
+    </div>
+    <div id="mini-player-content" style="width:100%; height:100%;"></div>
+  </div>
+ 
+  <div class="modal" id="create-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Publier sur VibePulse</h3>
+        <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal('create-modal')"></i>
+      </div>
+      <div class="form-group">
+        <label>Type de publication</label>
+        <select id="create-type" onchange="updateCreateFileAccept()">
+          <option value="video">Vidéo Longue</option>
+          <option value="short">Short (Format Vertical)</option>
+          <option value="story">Story / Statut (Plein écran)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Titre / Description / Texte de la Story</label>
+        <input type="text" id="create-title" placeholder="Ex: Ma superbe story en direct !">
+      </div>
+      <div class="form-group" id="create-source-toggle-group">
+        <label>Source du média</label>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn-action" id="source-btn-file" style="flex:1; justify-content:center; background:var(--accent-color); color:white;" onclick="setCreateSource('file')"><i class="fa-solid fa-upload"></i> Fichier</button>
+          <button type="button" class="btn-action" id="source-btn-link" style="flex:1; justify-content:center; background:var(--bg-hover);" onclick="setCreateSource('link')"><i class="fa-solid fa-link"></i> Lien / YouTube</button>
+          <button type="button" class="btn-action" id="source-btn-import" style="flex:1; justify-content:center; background:var(--bg-hover);" onclick="setCreateSource('import')"><i class="fa-solid fa-cloud-arrow-down"></i> Import en masse</button>
+        </div>
+      </div>
+      <div class="form-group" id="create-file-group">
+        <label>Fichier média (vidéo pour Vidéo/Short, image pour Story) — envoyé sur le cloud</label>
+        <input type="file" id="create-file" accept="video/*" onchange="previewCreateFile()">
+        <div id="create-file-preview" style="margin-top:8px; font-size:12px; color:var(--text-secondary);"></div>
+        <div id="create-upload-progress" style="margin-top:8px; font-size:12px; color:var(--accent-color); display:none;"></div>
+      </div>
+      <div class="form-group" id="create-link-group" style="display:none;">
+        <label>Lien YouTube ou URL vidéo directe</label>
+        <input type="text" id="create-link" placeholder="https://www.youtube.com/watch?v=... ou https://.../video.mp4">
+        <div style="margin-top:6px; font-size:11px; color:var(--text-secondary);">Colle un lien YouTube (il sera lu directement) ou le lien direct d'un fichier vidéo déjà hébergé.</div>
+      </div>
+
+      <!-- IMPORT EN MASSE : chaîne YouTube complète (API officielle) ou lot de liens TikTok (oEmbed officiel) -->
+      <div class="form-group" id="create-import-group" style="display:none;">
+        <label>Plateforme à importer</label>
+        <select id="import-platform" onchange="toggleImportPlatform()">
+          <option value="youtube">Chaîne YouTube (vidéos + Shorts)</option>
+          <option value="tiktok">Liens TikTok (par lot)</option>
+        </select>
+
+        <div id="import-yt-block" style="margin-top:12px;">
+          <label>Clé API YouTube Data v3 <span style="font-weight:normal; color:var(--text-secondary);">(gratuite, gardée uniquement dans ton navigateur)</span></label>
+          <input type="text" id="import-yt-key" placeholder="Colle ta clé API YouTube ici" onchange="localStorage.setItem('vp_youtube_api_key', this.value.trim()); youtubeApiKey = this.value.trim();">
+          <div style="margin:8px 0;"></div>
+          <label>Chaîne YouTube (handle @xxx, URL de la chaîne, ou ID UC...)</label>
+          <input type="text" id="import-yt-channel" placeholder="@nomdelachaine ou https://www.youtube.com/@nomdelachaine">
+          <div style="margin:8px 0;"></div>
+          <label>Nombre maximum de vidéos à importer</label>
+          <input type="number" id="import-yt-max" value="25" min="1" max="500">
+          <button type="button" class="btn-primary" style="width:100%; margin-top:12px;" onclick="importYouTubeChannel()">Importer toutes les vidéos de cette chaîne</button>
+          <div id="import-yt-status" style="margin-top:8px; font-size:12px; color:var(--accent-color);"></div>
+          <div style="margin-top:6px; font-size:11px; color:var(--text-secondary); line-height:1.4;">Tu indiques simplement la chaîne. VibePulse vérifie les vidéos publiques disponibles via YouTube Data API v3, évite les doublons et les intègre sans télécharger les fichiers. Les miniatures sont chargées à la demande pour éviter les ralentissements.</div>
+        </div>
+
+        <div id="import-tiktok-block" style="margin-top:12px; display:none;">
+          <label>Liens TikTok (un par ligne)</label>
+          <textarea id="import-tiktok-links" rows="5" style="width:100%; padding:10px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px;" placeholder="https://www.tiktok.com/@compte/video/1234567890&#10;https://www.tiktok.com/@compte/video/9876543210"></textarea>
+          <button type="button" class="btn-primary" style="width:100%; margin-top:12px;" onclick="importTikTokLinks()">Importer ces vidéos TikTok</button>
+          <div id="import-tiktok-status" style="margin-top:8px; font-size:12px; color:var(--accent-color);"></div>
+          <div style="margin-top:6px; font-size:11px; color:var(--text-secondary); line-height:1.4;">TikTok ne fournit pas d'API publique permettant d'aspirer automatiquement « toutes les vidéos » d'un compte quelconque : seule l'intégration officielle (oEmbed) vidéo par vidéo est disponible sans accord de partenariat. Colle ici les liens des vidéos que tu veux afficher.</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Catégorie (pour les vidéos)</label>
+        <select id="create-category">
+          <option value="Trending">Tendances</option>
+          <option value="Musique">Musique</option>
+          <option value="Gaming">Jeux vidéo</option>
+        </select>
+      </div>
+      <button class="btn-primary" style="width:100%;" onclick="publishContent()">Publier maintenant</button>
+      <p style="font-size:11px; color:var(--text-secondary); margin-top:10px; line-height:1.4;">
+        💡 Pour un stockage illimité et gratuit, configure ton propre compte cloud gratuit (voir <code>CLOUD_CONFIG</code> en haut du script). Sans configuration, les fichiers restent stockés dans ton navigateur (limité).
+      </p>
+    </div>
+  </div>
+ 
+  <div class="modal" id="account-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Gestion des Comptes VibePulse</h3>
+        <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal('account-modal')"></i>
+      </div>
+      <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 15px;">Créez ou basculez instantanément entre vos profils :</p>
+      <div id="accounts-list" style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px;"></div>
+      <div class="form-group">
+        <label>Nom du nouveau profil</label>
+        <input type="text" id="new-acc-name" placeholder="Ex: Mon Nouveau Pseudo">
+      </div>
+      <button class="btn-primary" style="width:100%;" onclick="createNewAccount()">Créer et basculer sur ce compte</button>
+    </div>
+  </div>
+ 
+  <div class="modal" id="studio-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Studio Créateur & Statistiques 📈</h3>
+        <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal('studio-modal')"></i>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 15px; font-size: 14px;">
+        <div style="background:var(--bg-primary); padding:12px; border-radius:8px; border:1px solid var(--border-color);">
+          <div style="color:var(--text-secondary); font-size:12px;">Vues totales de la chaîne</div>
+          <div style="font-size:22px; font-weight:bold; color:var(--accent-color);" id="studio-views">0</div>
+        </div>
+        <div style="background:var(--bg-primary); padding:12px; border-radius:8px; border:1px solid var(--border-color);">
+          <div style="color:var(--text-secondary); font-size:12px;">Abonnés</div>
+          <div style="font-size:22px; font-weight:bold;" id="studio-subs">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+  <script>
+    // =========================================================
+    // CONFIGURATION CLOUD (à remplir toi-même — voir le message
+    // envoyé avec ce fichier pour la marche à suivre complète)
+    // =========================================================
+    const CLOUD_CONFIG = {
+      // Crée un compte gratuit sur https://cloudinary.com puis renseigne :
+      cloudName: "fe0zqog1",       // ex: "dxxxxx"
+      uploadPreset: "lcfsivjw"     // preset "unsigned" créé dans Cloudinary > Settings > Upload
+    };
+    // Mode public : le localStorage reste propre à chaque navigateur.
+    // Les contenus partagés à tout le monde doivent provenir d'un serveur/API ou d'un stockage public.
+    const vpPublicMode = true;
+
+    function cloudIsConfigured() {
+      return !!(CLOUD_CONFIG.cloudName && CLOUD_CONFIG.uploadPreset);
+    }
+ 
+    // =========================================================
+    // CONNEXION TEMPS RÉEL (Socket.IO) — optionnelle et sécurisée
+    // Si aucun serveur n'est disponible sur SIGNALING_SERVER_URL,
+    // l'application continue de fonctionner à 100% en local
+    // (localStorage), le chat temps réel et les appels tombent
+    // alors en mode "démo locale" simulée décrit plus bas.
+    //
+    // NOTE IMPORTANTE : pour que les appels et messages soient
+    // reçus par une VRAIE autre personne (sur un autre appareil),
+    // il faut héberger le petit serveur signaling-server.js fourni
+    // à part (ex: sur Render.com, Railway, ou ton propre VPS) et
+    // renseigner son adresse ci-dessous.
+    // =========================================================
+    const SIGNALING_SERVER_URL =
+      localStorage.getItem('vp_signaling_server_url') ||
+      ((location.protocol === 'http:' || location.protocol === 'https:') ? location.origin : '');
+    function configureSignalingServer(url) {
+      const clean = String(url || '').trim().replace(/\/+$/, '');
+      localStorage.setItem('vp_signaling_server_url', clean);
+      location.reload();
+    }
+
+    function signalingServerConfigured() {
+      return !!SIGNALING_SERVER_URL;
+    }
+
+    let socket = null;
+    let peerConnection = null;
+    let localMediaStream = null;
+    const RTC_CONFIG = {
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun1.l.google.com:19302" }
+      ]
+    };
+ 
+    try {
+      if (typeof io !== 'undefined' && SIGNALING_SERVER_URL) {
+        socket = io(SIGNALING_SERVER_URL, { reconnection: true, timeout: 5000, autoConnect: true });
+ 
+        socket.on('connect', () => {
+          console.log("Connecté au serveur VibePulse temps réel ! 🚀");
+          socket.emit('identify', { name: currentChannel.name, id: currentChannel.id });
+        });
+ 
+        socket.on('connect_error', () => {
+          // Pas de serveur temps réel disponible : mode 100% local, silencieux.
+        });
+ 
+        socket.on('receive_message', (data) => {
+          if (!data || !data.text) return;
+          let fromName = data.sender || 'Contact';
+          addMessageToHistory(fromName, 'received', data.text);
+          if (activeChatFriendName === fromName && document.getElementById('chat-widget').classList.contains('active')) {
+            renderChatMessages();
+          } else {
+            addNotification(`💬 Nouveau message de ${fromName}`, 'fa-comment');
+            showBrowserNotification('Nouveau message VibePulse', `${fromName} : ${data.text}`);
+          }
+        });
+ 
+        socket.on('update_likes', (data) => {
+          let likeElement = document.getElementById(`likes-count-${data.post_id}`);
+          if (likeElement) likeElement.innerText = data.likes;
+        });
+ 
+        // --- Évènements d'appel temps réel (signaling WebRTC) ---
+        socket.on('incoming_call', (data) => {
+          if (!data || !data.from) return;
+          receiveIncomingCall(data);
+        });
+ 
+        socket.on('call_response', (data) => {
+          if (!data) return;
+          handleCallResponse(data);
+        });
+ 
+        socket.on('webrtc_offer', async (data) => {
+          if (!data || data.to !== currentChannel.name) return;
+          await handleRemoteOffer(data);
+        });
+ 
+        socket.on('webrtc_answer', async (data) => {
+          if (!data || !peerConnection) return;
+          await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+        });
+ 
+        socket.on('webrtc_ice_candidate', async (data) => {
+          if (!data || !peerConnection || !data.candidate) return;
+          try { await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch (e) { console.warn(e); }
+        });
+ 
+        socket.on('call_ended', (data) => {
+          if (!data) return;
+          if (currentCallContact === data.from) {
+            document.getElementById('call-status-text').innerText = "L'appel a été terminé par l'autre personne";
+            setTimeout(endCall, 1200);
+          }
+        });
+      }
+    } catch (e) {
+      console.warn("Serveur temps réel indisponible : VibePulse fonctionne en mode 100% local.", e);
+    }
+ 
+    function sendLike(postId) {
+      if (socket) socket.emit('like_post', { post_id: postId });
+    }
+ 
+    // =========================================================
+    // ÉTAT DE L'APPLICATION (persisté en localStorage)
+    // =========================================================
+    let videos = JSON.parse(localStorage.getItem('vp_videos')) || [];
+    let shorts = JSON.parse(localStorage.getItem('vp_shorts')) || [];
+
+    let stories = JSON.parse(localStorage.getItem('vp_stories')) || [];
+    let accounts = JSON.parse(localStorage.getItem('vp_accounts')) || [{ name: "Mon Compte Principal", handle: "@mon_compte", id: "c_main" }];
+    let currentChannel = accounts[0];
+    let currentUser = JSON.parse(localStorage.getItem('vp_current_user')) || null;
+ 
+    // Contacts / Amis & Messages
+    let friends = JSON.parse(localStorage.getItem('vp_friends')) || [
+      { name: "Support VibePulse", handle: "@vibe_support" }
+    ];
+    let chatHistories = JSON.parse(localStorage.getItem('vp_chat_histories')) || {
+      "Support VibePulse": [
+        { sender: "received", text: "Bienvenue sur VibePulse ! Vous pouvez discuter et passer des appels ici à tout moment. 🚀" }
+      ]
+    };
+    let activeChatFriendName = "Support VibePulse";
+ 
+
+    let vpSharedCatalogLoaded = false;
+    let vpSharedCatalogLoading = null;
+
+    async function loadSharedCatalog() {
+      if (vpSharedCatalogLoaded) return;
+      if (vpSharedCatalogLoading) return vpSharedCatalogLoading;
+
+      vpSharedCatalogLoading = (async () => {
+        try {
+          const res = await fetch('/api/catalog?limit=500', { cache: 'no-store' });
+          if (!res.ok) return;
+          const data = await res.json();
+
+          const incomingVideos = Array.isArray(data.videos) ? data.videos : [];
+          const incomingShorts = Array.isArray(data.shorts) ? data.shorts : [];
+
+          const videoIds = new Set(videos.map(v => String(v.youtubeId || v.id)));
+          for (const v of incomingVideos) {
+            const key = String(v.youtubeId || v.id);
+            if (!videoIds.has(key)) {
+              videos.push(v);
+              videoIds.add(key);
+            }
+          }
+
+          const shortIds = new Set(shorts.map(s => String(s.youtubeId || s.tiktokId || s.id)));
+          for (const s of incomingShorts) {
+            const key = String(s.youtubeId || s.tiktokId || s.id);
+            if (!shortIds.has(key)) {
+              shorts.push(s);
+              shortIds.add(key);
+            }
+          }
+
+          vpSharedCatalogLoaded = true;
+        } catch (e) {
+          // Le mode local continue normalement si aucun serveur public n'est disponible.
+        }
+      })();
+
+      return vpSharedCatalogLoading;
+    }
+
+    async function publishLocalCatalogToServer() {
+      const batchSize = 1000;
+      let sent = 0;
+
+      for (let i = 0; i < videos.length; i += batchSize) {
+        const batch = videos.slice(i, i + batchSize);
+        const res = await fetch('/api/catalog/merge', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ videos: batch, shorts: [] })
+        });
+        if (!res.ok) throw new Error('Erreur pendant la publication du catalogue vidéo.');
+        sent += batch.length;
+      }
+
+      for (let i = 0; i < shorts.length; i += batchSize) {
+        const batch = shorts.slice(i, i + batchSize);
+        const res = await fetch('/api/catalog/merge', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ videos: [], shorts: batch })
+        });
+        if (!res.ok) throw new Error('Erreur pendant la publication du catalogue Shorts.');
+      }
+
+      alert(`Catalogue public mis à jour : ${sent.toLocaleString('fr-FR')} vidéos + ${shorts.length.toLocaleString('fr-FR')} Shorts.`);
+    }
+
+    let currentViewingVideo = null;
+    let currentShortIndex = 0;
+    let historyList = JSON.parse(localStorage.getItem('vp_history')) || [];
+    let likedList = JSON.parse(localStorage.getItem('vp_liked')) || [];
+    let likedShorts = JSON.parse(localStorage.getItem('vp_liked_shorts')) || [];
+    let subscriptions = JSON.parse(localStorage.getItem('vp_subs')) || [];
+
+    // Chaînes externes importées (YouTube / TikTok) : { channelId: {name, handle, avatar, platform} }
+    let externalChannels = JSON.parse(localStorage.getItem('vp_external_channels')) || {};
+    // Clé API YouTube Data v3, saisie une fois par l'utilisateur et gardée dans son navigateur
+    let youtubeApiKey = localStorage.getItem('vp_youtube_api_key') || '';
+ 
+    // Notifications (nouveau système dynamique)
+    let notifications = JSON.parse(localStorage.getItem('vp_notifications')) || [
+      { icon: 'fa-bullhorn', text: "<strong>VibePulse :</strong> Toutes les anciennes vidéos et comptes ont été nettoyés. Prêt pour un nouveau départ !" }
+    ];
+    let unreadNotifCount = parseInt(localStorage.getItem('vp_unread_notif') || '1', 10);
+ 
+    // Variables pour la visionneuse de Story
+    let currentStoryUserIndex = 0;
+    let storyTimer = null;
+    let storyProgressWidth = 0;
+    let callTimer = null;
+    let authMode = 'login';
+    let createSourceMode = 'file';
+ 
+    // Variables pour le système d'appel
+    let currentCallContact = null;
+    let currentCallIsIncoming = false;
+ 
+    // Variables pour la navigation des Shorts (molette / tactile)
+    let shortsWheelLocked = false;
+    let shortsTouchStartY = null;
+    let shortsPointerStartY = null;
+    let shortsPointerActive = false;
+ 
+    const vpSaveTimers = {};
+    function vpSaveKey(key, value, delay=250) {
+      clearTimeout(vpSaveTimers[key]);
+      vpSaveTimers[key] = setTimeout(() => {
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+        } catch (e) {
+          console.error("Erreur de stockage :", e);
+        }
+      }, delay);
+    }
+
+    function saveToStorage() {
+      // Sauvegarde fractionnée : surtout ne pas bloquer l'UI en sérialisant
+      // 100 000 vidéos à chaque clic/commentaire.
+      vpSaveKey('vp_videos', videos, 1500);
+      vpSaveKey('vp_shorts', shorts, 1500);
+      vpSaveKey('vp_stories', stories, 500);
+      vpSaveKey('vp_accounts', accounts, 500);
+      vpSaveKey('vp_history', historyList, 250);
+      vpSaveKey('vp_liked', likedList, 500);
+      vpSaveKey('vp_liked_shorts', likedShorts, 500);
+      vpSaveKey('vp_subs', subscriptions, 500);
+      vpSaveKey('vp_friends', friends, 500);
+      vpSaveKey('vp_chat_histories', chatHistories, 500);
+      vpSaveKey('vp_external_channels', externalChannels, 1000);
+    }
+ 
+    function saveNotifications() {
+      localStorage.setItem('vp_notifications', JSON.stringify(notifications));
+      localStorage.setItem('vp_unread_notif', String(unreadNotifCount));
+    }
+
+    function saveHistoryOnly() {
+      try {
+        localStorage.setItem('vp_history', JSON.stringify(historyList));
+      } catch (e) {
+        console.warn('Impossible de sauvegarder uniquement l’historique :', e);
+      }
+    }
+
+ 
+    window.onload = function() {
+      // Le loader reste visible pendant toute la phase de lancement.
+      // Les 100k vidéos ne sont pas supprimées : elles sont rendues progressivement.
+      vpStartOptimized();
+      // Les notifications sont demandées uniquement par les fonctions concernées,
+      // pas au chargement initial, afin d'éviter un ralentissement/popup au démarrage.
+    };
+ 
+
+    // =========================================================
+    // DÉMARRAGE OPTIMISÉ — écran conservé jusqu'à la fin du lancement
+    // =========================================================
+    function vpSetLoader(percent, status, count) {
+      const bar = document.getElementById('vp-loader-bar');
+      const statusEl = document.getElementById('vp-loader-status');
+      const countEl = document.getElementById('vp-loader-count');
+      if (bar) bar.style.width = Math.max(0, Math.min(100, percent)) + '%';
+      if (statusEl) statusEl.textContent = status || '';
+      if (countEl) countEl.textContent = count || '';
+    }
+
+    function vpFinishLoader() {
+      vpSetLoader(100, 'VibePulse est prêt.', 'Lancement terminé');
+      const loader = document.getElementById('vp-startup-loader');
+      if (!loader) return;
+      setTimeout(() => {
+        loader.classList.add('hidden');
+        setTimeout(() => loader.remove(), 300);
+      }, 350);
+    }
+
+    async function vpStartOptimized() {
+      vpSetLoader(8, 'Lecture des données locales…', `${videos.length.toLocaleString('fr-FR')} vidéos • ${shorts.length.toLocaleString('fr-FR')} Shorts`);
+      await new Promise(r => requestAnimationFrame(r));
+
+      vpSetLoader(20, 'Préparation de l’interface…', 'Création de la structure');
+      await new Promise(r => requestAnimationFrame(r));
+
+      if (!currentUser) {
+        document.getElementById('auth-overlay').classList.add('active');
+      } else {
+        document.getElementById('auth-overlay').classList.remove('active');
+      }
+
+      updateUserUI();
+
+      vpSetLoader(38, 'Chargement des recommandations…', 'Affichage progressif en arrière-plan');
+      renderHome();
+
+      // Ne bloque pas le lancement sur les 100 000 cartes :
+      // le rendu des paquets continue en arrière-plan.
+      await new Promise(r => requestAnimationFrame(r));
+      vpSetLoader(62, 'Chargement de l’interface…', 'Le reste continue en arrière-plan');
+      renderStories();
+
+      await new Promise(r => requestAnimationFrame(r));
+      vpSetLoader(74, 'Chargement des abonnements…', '');
+      renderSubscriptions();
+
+      await new Promise(r => requestAnimationFrame(r));
+      vpSetLoader(84, 'Chargement de l’historique…', '');
+      renderHistory();
+
+      await new Promise(r => requestAnimationFrame(r));
+      vpSetLoader(91, 'Chargement des favoris et notifications…', '');
+      renderLiked();
+      renderNotifications();
+
+      // Ne charge PAS le lecteur YouTube des Shorts pendant le démarrage.
+      // Le premier Short sera chargé uniquement quand l'utilisateur ouvre l'onglet Shorts.
+      vpSetLoader(96, 'Finalisation du lancement…', 'Lecteur Shorts prêt à la demande');
+      setupShortsNavigation();
+
+      await new Promise(r => requestAnimationFrame(r));
+      vpFinishLoader();
+    }
+
+    // =========================================================
+    // NOTIFICATIONS (badge dynamique + Notification API navigateur)
+    // =========================================================
+    function requestNotifPermission() {
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission().catch(() => {});
+      }
+    }
+ 
+    function showBrowserNotification(title, body) {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try { new Notification(title, { body: body }); } catch (e) { /* silencieux */ }
+      }
+    }
+ 
+    function playRingSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const playBeep = (delay) => {
+          setTimeout(() => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = 523;
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            gain.gain.setValueAtTime(0.001, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.4);
+          }, delay);
+        };
+        playBeep(0);
+        playBeep(450);
+      } catch (e) { /* API audio indisponible, silencieux */ }
+    }
+ 
+    function addNotification(text, icon) {
+      notifications.unshift({ icon: icon || 'fa-bell', text: text });
+      if (notifications.length > 30) notifications = notifications.slice(0, 30);
+      unreadNotifCount++;
+      saveNotifications();
+      renderNotifications();
+    }
+ 
+    function renderNotifications() {
+      let list = document.getElementById('notif-list');
+      let badge = document.getElementById('notif-count');
+      if (!list || !badge) return;
+      list.innerHTML = '';
+      if (notifications.length === 0) {
+        list.innerHTML = `<div class="notif-item" style="cursor:default;">Aucune notification pour le moment.</div>`;
+      } else {
+        notifications.forEach(n => {
+          list.innerHTML += `
+            <div class="notif-item">
+              <i class="fa-solid ${n.icon}"></i>
+              <div>${n.text}</div>
+            </div>
+          `;
+        });
+      }
+      badge.innerText = unreadNotifCount;
+      badge.style.display = unreadNotifCount > 0 ? 'block' : 'none';
+    }
+ 
+    // =========================================================
+    // CONNEXION / INSCRIPTION (première visite)
+    // =========================================================
+    function switchAuthTab(mode) {
+      authMode = mode;
+      document.getElementById('tab-login').classList.toggle('active', mode === 'login');
+      document.getElementById('tab-signup').classList.toggle('active', mode === 'signup');
+      document.getElementById('auth-name-group').style.display = mode === 'signup' ? 'block' : 'none';
+      document.getElementById('auth-submit-btn').innerText = mode === 'signup' ? 'Créer mon compte' : 'Se connecter';
+      document.getElementById('auth-error').style.display = 'none';
+    }
+ 
+    function showAuthError(msg) {
+      let el = document.getElementById('auth-error');
+      el.innerText = msg;
+      el.style.display = 'block';
+    }
+ 
+    function handleAuthSubmit() {
+      let email = document.getElementById('auth-email').value.trim().toLowerCase();
+      let password = document.getElementById('auth-password').value;
+      let name = document.getElementById('auth-name').value.trim();
+ 
+      if (!email || !password) {
+        showAuthError("Merci de remplir l'email et le mot de passe.");
+        return;
+      }
+      if (!email.includes('@') || !email.includes('.')) {
+        showAuthError("Adresse email invalide.");
+        return;
+      }
+      if (password.length < 4) {
+        showAuthError("Le mot de passe doit contenir au moins 4 caractères.");
+        return;
+      }
+ 
+      let registeredUsers = JSON.parse(localStorage.getItem('vp_registered_users')) || {};
+ 
+      if (authMode === 'signup') {
+        if (registeredUsers[email]) {
+          showAuthError("Un compte existe déjà avec cet email. Connecte-toi plutôt.");
+          return;
+        }
+        if (!name) {
+          showAuthError("Merci d'indiquer un nom affiché.");
+          return;
+        }
+        registeredUsers[email] = { password: password, name: name };
+        localStorage.setItem('vp_registered_users', JSON.stringify(registeredUsers));
+        completeLogin(email, name);
+      } else {
+        let user = registeredUsers[email];
+        if (!user) {
+          showAuthError("Aucun compte trouvé avec cet email. Crée un compte d'abord.");
+          return;
+        }
+        if (user.password !== password) {
+          showAuthError("Mot de passe incorrect.");
+          return;
+        }
+        completeLogin(email, user.name);
+      }
+    }
+ 
+    function handleGoogleAuth() {
+      // Simulation d'une connexion Google (démo hors-ligne : un vrai OAuth
+      // nécessiterait un serveur, indisponible dans ce fichier autonome).
+      let fakeEmail = "utilisateur" + Math.floor(Math.random() * 100000) + "@gmail.com";
+      let fakeName = "Utilisateur Google";
+      completeLogin(fakeEmail, fakeName);
+    }
+ 
+    function completeLogin(email, name) {
+      let userAccount = accounts.find(a => a.authEmail === email);
+      if (!userAccount) {
+        userAccount = {
+          name: name,
+          handle: "@" + name.toLowerCase().replace(/[^a-z0-9]+/g, '_') + Math.floor(Math.random() * 1000),
+          id: "c_" + Date.now(),
+          authEmail: email
+        };
+        accounts.push(userAccount);
+      }
+      currentChannel = userAccount;
+      currentUser = { email: email };
+      localStorage.setItem('vp_current_user', JSON.stringify(currentUser));
+      saveToStorage();
+      updateUserUI();
+      document.getElementById('auth-overlay').classList.remove('active');
+      document.getElementById('auth-email').value = '';
+      document.getElementById('auth-password').value = '';
+      document.getElementById('auth-name').value = '';
+      requestNotifPermission();
+      if (socket && socket.connected) socket.emit('identify', { name: currentChannel.name, id: currentChannel.id });
+    }
+ 
+    function logoutUser() {
+      if (!confirm("Se déconnecter de VibePulse ?")) return;
+      currentUser = null;
+      localStorage.removeItem('vp_current_user');
+      document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('active'));
+      document.getElementById('auth-overlay').classList.add('active');
+    }
+ 
+    function updateUserUI() {
+      document.getElementById('user-name').innerText = currentChannel.name;
+      document.getElementById('user-handle').innerText = currentChannel.handle;
+      let initials = currentChannel.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+      document.getElementById('current-pdp').innerText = initials;
+      document.getElementById('dropdown-pdp').innerText = initials;
+      document.getElementById('comment-user-pdp').innerText = initials;
+      renderAccountsList();
+    }
+ 
+    function renderAccountsList() {
+      let list = document.getElementById('accounts-list');
+      if(!list) return;
+      list.innerHTML = '';
+      accounts.forEach(acc => {
+        let isCurrent = acc.id === currentChannel.id;
+        list.innerHTML += `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-primary); padding:10px; border-radius:8px; border:1px solid var(--border-color);">
+            <div><strong>${acc.name}</strong> <span style="font-size:11px; color:var(--text-secondary);">${acc.handle}</span></div>
+            ${isCurrent ? '<span style="font-size:11px; color:#00ff66; font-weight:bold;">Actif</span>' : `<button class="btn-primary" style="padding:4px 10px; font-size:11px;" onclick="switchAccount('${acc.id}')">Basculer</button>`}
+          </div>
+        `;
+      });
+    }
+ 
+    function switchAccount(id) {
+      let found = accounts.find(a => a.id === id);
+      if(found) {
+        currentChannel = found;
+        updateUserUI();
+        closeModal('account-modal');
+        alert("Basculement réussi sur le compte de " + found.name);
+        if (socket && socket.connected) socket.emit('identify', { name: currentChannel.name, id: currentChannel.id });
+      }
+    }
+ 
+    // =========================================================
+    // NAVIGATION / MOBILE
+    // =========================================================
+
+    // =========================================================
+    // SÉCURITÉ AUDIO/VIDÉO : arrêt immédiat quand on quitte
+    // =========================================================
+    function stopAllPlayback() {
+      document.querySelectorAll('video, audio').forEach(media => {
+        try {
+          media.pause();
+          media.currentTime = 0;
+        } catch (e) {}
+      });
+
+      // Retirer aussi les lecteurs YouTube/TikTok pour couper immédiatement le son.
+      const shortContainer = document.getElementById('short-media-container');
+      if (shortContainer) {
+        const iframe = shortContainer.querySelector('iframe');
+        if (iframe) {
+          // Recharger la zone vide coupe l'iframe et son audio.
+          shortContainer.innerHTML = '';
+        }
+      }
+
+      const playerContainer = document.getElementById('player-container');
+      if (playerContainer) {
+        const iframe = playerContainer.querySelector('iframe');
+        if (iframe) {
+          playerContainer.innerHTML = '';
+        }
+      }
+    }
+
+    function pauseShortPlayer() {
+      let player = document.getElementById('short-video-player');
+      if (player && !player.paused) player.pause();
+    }
+
+    function showPage(pageId, element) {
+      closeMobileSidebarIfOpen();
+
+      // Dès qu'on quitte une vidéo, un Short ou le Live : zéro son en arrière-plan.
+      const currentPage = document.querySelector('.page.active');
+      if (currentPage && ['video','shorts','live'].includes(currentPage.id.replace('page-',''))
+          && currentPage.id !== 'page-' + pageId) {
+        stopAllPlayback();
+      }
+
+      // Sécurité supplémentaire : quand on va sur une autre page que Shorts, le Short s'arrête.
+      if (pageId !== 'shorts') pauseShortPlayer();
+
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-' + pageId).classList.add('active');
+      
+      if(element) {
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        element.classList.add('active');
+      }
+ 
+      if(pageId === 'home') renderHome();
+      if(pageId === 'shorts' && shorts.length > 0) playCurrentShort();
+      if(pageId === 'subscriptions') renderSubscriptions();
+      if(pageId === 'history') renderHistory();
+      if(pageId === 'liked') renderLiked();
+    }
+ 
+    function toggleSidebar() {
+      let aside = document.getElementById('sidebar');
+      let main = document.getElementById('main-content');
+      let backdrop = document.getElementById('sidebar-backdrop');
+      if (window.innerWidth <= 900) {
+        aside.classList.toggle('mobile-open');
+        backdrop.classList.toggle('active');
+      } else {
+        aside.classList.toggle('hidden');
+        main.classList.toggle('expanded');
+      }
+    }
+ 
+    function closeMobileSidebarIfOpen() {
+      if (window.innerWidth <= 900) {
+        document.getElementById('sidebar').classList.remove('mobile-open');
+        document.getElementById('sidebar-backdrop').classList.remove('active');
+      }
+    }
+ 
+    function toggleMobileSearch() {
+      let box = document.getElementById('header-center-box');
+      box.classList.toggle('mobile-search-active');
+      if (box.classList.contains('mobile-search-active')) {
+        document.getElementById('search-input').focus();
+      }
+    }
+ 
+    function toggleDropdown(id, event) {
+      event.stopPropagation();
+      let menu = document.getElementById(id);
+      let isActive = menu.classList.contains('active');
+      document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('active'));
+      if(!isActive) {
+        menu.classList.add('active');
+        if (id === 'notif-dropdown') {
+          unreadNotifCount = 0;
+          saveNotifications();
+          document.getElementById('notif-count').style.display = 'none';
+        }
+      }
+    }
+ 
+    window.onclick = function(e) {
+      document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('active'));
+      let searchBox = document.getElementById('search-suggestions');
+      let searchInput = document.getElementById('search-input');
+      if (searchBox && e.target !== searchInput && !searchBox.contains(e.target)) {
+        searchBox.style.display = 'none';
+      }
+    }
+ 
+    // --- GESTION DES STORIES ---
+    function renderStories() {
+      let container = document.getElementById('stories-container');
+      container.innerHTML = `
+        <div class="story-card" onclick="openModal('create-modal')">
+          <div class="story-avatar">+</div>
+          <span>Ma Story</span>
+        </div>
+      `;
+      stories.forEach((s, index) => {
+        container.innerHTML += `
+          <div class="story-card" onclick="openStoryViewer(${index})">
+            <div class="story-bg" style="background-image: url('${s.bg || "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=300"}')"></div>
+            <div class="story-avatar">${s.name[0].toUpperCase()}</div>
+            <span>${s.name}</span>
+          </div>
+        `;
+      });
+    }
+ 
+    function openStoryViewer(index) {
+      if(stories.length === 0) return;
+      currentStoryUserIndex = index;
+      document.getElementById('story-viewer-modal').classList.add('active');
+      playCurrentStoryStep();
+    }
+ 
+    function playCurrentStoryStep() {
+      if(storyTimer) clearInterval(storyTimer);
+      let s = stories[currentStoryUserIndex];
+      if(!s) {
+        closeStoryViewerDirect();
+        return;
+      }
+ 
+      document.getElementById('story-viewer-name').innerText = s.name;
+      document.getElementById('story-viewer-pdp').innerText = s.name.substring(0,2).toUpperCase();
+      document.getElementById('story-viewer-caption').innerText = s.title || "";
+      
+      let bg = document.getElementById('story-viewer-content-bg');
+      if(s.bg) {
+        bg.style.backgroundImage = `url('${s.bg}')`;
+        bg.style.backgroundColor = 'transparent';
+      } else {
+        bg.style.backgroundImage = 'none';
+        bg.style.backgroundColor = '#222';
+      }
+ 
+      let pContainer = document.getElementById('story-progress-container');
+      pContainer.innerHTML = '';
+      stories.forEach((_, i) => {
+        pContainer.innerHTML += `
+          <div class="story-progress-bar">
+            <div class="story-progress-fill" id="story-progress-${i}" style="width: ${i < currentStoryUserIndex ? '100%' : (i === currentStoryUserIndex ? '0%' : '0%')}"></div>
+          </div>
+        `;
+      });
+ 
+      storyProgressWidth = 0;
+      let fillElement = document.getElementById(`story-progress-${currentStoryUserIndex}`);
+      
+      storyTimer = setInterval(() => {
+        storyProgressWidth += 1;
+        if(fillElement) fillElement.style.width = storyProgressWidth + '%';
+        if(storyProgressWidth >= 100) {
+          clearInterval(storyTimer);
+          if(currentStoryUserIndex < stories.length - 1) {
+            currentStoryUserIndex++;
+            playCurrentStoryStep();
+          } else {
+            closeStoryViewerDirect();
+          }
+        }
+      }, 50);
+    }
+ 
+    function closeStoryViewer(event) {
+      if(event.target.id === 'story-viewer-modal') {
+        closeStoryViewerDirect();
+      }
+    }
+ 
+    function closeStoryViewerDirect() {
+      if(storyTimer) clearInterval(storyTimer);
+      document.getElementById('story-viewer-modal').classList.remove('active');
+    }
+ 
+    function replyToStory() {
+      let input = document.getElementById('story-reply-input');
+      if(!input.value.trim()) return;
+      let targetName = stories[currentStoryUserIndex] ? stories[currentStoryUserIndex].name : "Créateur";
+      ensureFriendExists(targetName);
+      addMessageToHistory(targetName, "sent", "Réponse à la Story: " + input.value.trim());
+      alert("Réponse envoyée en message privé à " + targetName + " !");
+      input.value = '';
+    }
+ 
+    // --- RENDU ACCUEIL ---
+    function renderHome() {
+      let container = document.getElementById('structured-home-container');
+      container.innerHTML = `
+        <div class="home-section-container">
+          <div class="home-section-title"><i class="fa-solid fa-fire" style="color:var(--accent-color);"></i> Recommandations Vidéos</div>
+          <div class="video-grid" id="home-videos-grid"></div>
+        </div>
+ 
+        <div class="home-ad-banner">
+          <div>
+            <h3>🚀 Bienvenue sur votre Réseau Social VibePulse</h3>
+            <p style="font-size:13px; color:var(--text-secondary); margin-top:4px;">Publiez vos vidéos et commencez à interagir avec la communauté.</p>
+          </div>
+          <button class="btn-primary" onclick="openModal('create-modal')">Publier</button>
+        </div>
+        <div id="vp-home-ad-slot">${vpAdHtml('Sponsorisé — partenaire VibePulse')}</div>
+ 
+        <div class="home-section-container">
+          <div class="home-section-title"><i class="fa-solid fa-bolt-lightning" style="color:#ffaa00;"></i> Shorts Populaires</div>
+          <div class="home-shorts-row" id="home-shorts-row"></div>
+        </div>
+      `;
+ 
+      let vGrid = document.getElementById('home-videos-grid');
+      if(videos.length === 0) {
+        vGrid.innerHTML = `<p style="color:var(--text-secondary);">Aucune vidéo postée pour le moment. Soyez le premier créateur !</p>`;
+      } else {
+        // Ne jamais faire 100 000 innerHTML + DOM d'un coup.
+        // On conserve toutes les vidéos en mémoire mais on rend l'interface par paquets.
+        const batchSize = 120;
+        let videoIndex = 0;
+
+        const renderVideoBatch = () => {
+          const frag = document.createDocumentFragment();
+          const end = Math.min(videoIndex + batchSize, videos.length);
+
+          for (; videoIndex < end; videoIndex++) {
+            const v = videos[videoIndex];
+            const card = document.createElement('div');
+            card.className = 'video-card';
+            card.onclick = () => openVideo(v.id);
+
+            const thumb = document.createElement('div');
+            thumb.className = 'thumb';
+            thumb.style.backgroundImage = `url('${v.thumb || ''}')`;
+            thumb.style.backgroundSize = 'cover';
+            thumb.style.backgroundPosition = 'center';
+
+            const badge = document.createElement('span');
+            badge.className = 'badge-type';
+            badge.textContent = v.category || '';
+            thumb.appendChild(badge);
+
+            const details = document.createElement('div');
+            details.className = 'video-details';
+            details.innerHTML = `
+              <div class="video-title"></div>
+              <div class="video-channel"></div>
+            `;
+            details.children[0].textContent = v.title || '';
+            details.children[1].textContent = `${v.channel || ''} • ${v.views || 0} vues`;
+
+            card.appendChild(thumb);
+            card.appendChild(details);
+            frag.appendChild(card);
+          }
+
+          vGrid.appendChild(frag);
+
+          if (videoIndex < videos.length) {
+            requestAnimationFrame(renderVideoBatch);
+          }
+        };
+
+        renderVideoBatch();
+      }
+ 
+      let sRow = document.getElementById('home-shorts-row');
+      if(shorts.length === 0) {
+        sRow.innerHTML = `<p style="color:var(--text-secondary); font-size:13px;">Aucun short disponible.</p>`;
+      } else {
+        const frag = document.createDocumentFragment();
+        shorts.forEach(s => {
+          const card = document.createElement('div');
+          card.className = 'home-short-mini';
+          card.onclick = () => openShortById(s.id);
+
+          const thumb = document.createElement('img');
+          thumb.loading = 'lazy';
+          thumb.decoding = 'async';
+          thumb.alt = s.title || 'Short';
+          thumb.src = s.thumb || (s.youtubeId
+            ? `https://img.youtube.com/vi/${s.youtubeId}/hqdefault.jpg`
+            : '');
+          card.appendChild(thumb);
+
+          const overlay = document.createElement('div');
+          overlay.className = 'home-short-mini-overlay';
+          overlay.innerHTML = `
+            <div style="font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
+            <div style="font-size:10px; color:#aaa;"></div>
+          `;
+          overlay.children[0].textContent = s.title || 'Short';
+          overlay.children[1].textContent = s.channel || '';
+          card.appendChild(overlay);
+          frag.appendChild(card);
+        });
+        sRow.replaceChildren(frag);
+      }
+    }
+ 
+    // --- LECTEUR DE VIDÉO STANDARD (gère fichiers, cloud, et embed YouTube) ---
+    function extractYouTubeId(url) {
+      if (!url) return null;
+      let patterns = [
+        /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/
+      ];
+      for (let p of patterns) {
+        let m = url.match(p);
+        if (m) return m[1];
+      }
+      return null;
+    }
+ 
+
+    // =========================================================
+    // LECTEUR : la vidéo ne démarre qu'une fois affichée/prête
+    // =========================================================
+    function vpEsc(value) {
+      return String(value ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    }
+
+    function vpPlayerShell(content, title) {
+      return `
+        <div class="vp-video-stage" data-vp-title="${vpEsc(title || 'Vidéo')}">
+          <div class="vp-video-loading" id="vp-loading-overlay">
+            <div class="vp-video-spinner"></div>
+            <div>Affichage de la vidéo…</div>
+            <small>La lecture démarrera uniquement quand la vidéo sera prête.</small>
+          </div>
+          ${content}
+        </div>`;
+    }
+
+    function vpHideLoadingAndPlay(el) {
+      const root = el?.closest?.('.vp-video-stage');
+      const overlay = root?.querySelector?.('.vp-video-loading');
+      if (overlay) overlay.classList.add('hidden');
+
+      // Lecture uniquement après affichage/ready.
+      if (el && el.tagName === 'VIDEO') {
+        requestAnimationFrame(() => {
+          el.play().catch(() => {});
+        });
+      }
+    }
+
+    function vpBindVideoReady(container) {
+      const video = container?.querySelector?.('video');
+      if (!video) return;
+      video.addEventListener('canplay', () => vpHideLoadingAndPlay(video), { once:true });
+      video.addEventListener('error', () => {
+        const root = video.closest('.vp-video-stage');
+        const overlay = root?.querySelector?.('.vp-video-loading');
+        if (overlay) {
+          overlay.innerHTML = `<div style="font-weight:700;">Impossible de charger cette vidéo</div><small>Vérifie l'URL ou réessaie.</small>`;
+        }
+      }, { once:true });
+
+      // Pour les vidéos locales, ne pas lancer avant canplay.
+      video.autoplay = false;
+      video.load();
+    }
+
+    function vpBindIframeReady(container) {
+      const frame = container?.querySelector?.('iframe');
+      if (!frame) return;
+
+      // YouTube/TikTok gèrent leur propre buffering dans l'iframe.
+      // On retire seulement l'overlay après le chargement du document iframe.
+      frame.addEventListener('load', () => {
+        const root = frame.closest('.vp-video-stage');
+        const overlay = root?.querySelector?.('.vp-video-loading');
+        if (overlay) overlay.classList.add('hidden');
+      }, { once:true });
+    }
+
+    function vpAdHtml(title='Sponsorisé') {
+      return `
+        <div class="vp-ad-slot">
+          <div class="vp-ad-badge">PUBLICITÉ</div>
+          <div class="vp-ad-body">
+            <div class="vp-ad-title">${vpEsc(title)}</div>
+            <div class="vp-ad-text">Contenu sponsorisé — espace publicitaire VibePulse</div>
+          </div>
+          <button class="vp-ad-btn" type="button" onclick="alert('Publicité VibePulse')">Voir</button>
+        </div>`;
+    }
+
+
+    const vpVideoHtmlCache = new Map();
+
+    function buildPlayerHtml(item, elId) {
+      if (item.sourceType === 'youtube' && item.youtubeId) {
+        const ytId = String(item.youtubeId).trim();
+        const ytUrl = `https://www.youtube.com/watch?v=${encodeURIComponent(ytId)}`;
+        const isLocalFile = window.location.protocol === 'file:';
+
+        if (isLocalFile) {
+          return vpPlayerShell(`
+            <div style="width:100%;height:100%;min-height:360px;background:#000;display:flex;align-items:center;justify-content:center;padding:30px;box-sizing:border-box;">
+              <div style="max-width:560px;text-align:center;color:#fff;">
+                <img loading="lazy" src="https://img.youtube.com/vi/${encodeURIComponent(ytId)}/hqdefault.jpg"
+                     style="width:100%;max-width:480px;border-radius:12px;display:block;margin:0 auto 18px;"
+                     alt="">
+                <div style="font-size:18px;font-weight:700;margin-bottom:8px;">Vidéo YouTube</div>
+                <div style="font-size:13px;opacity:.75;margin-bottom:18px;">
+                  YouTube bloque la lecture intégrée lorsque VibePulse est ouvert directement en fichier HTML.
+                </div>
+                <a href="${ytUrl}" target="_blank" rel="noopener noreferrer"
+                   style="display:inline-block;background:#ff0033;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:700;">
+                  ▶ Regarder sur YouTube
+                </a>
+              </div>
+            </div>`, item.title);
+        }
+
+        return vpPlayerShell(`
+          <iframe
+            id="${elId}"
+            title="${String(item.title || 'Vidéo YouTube').replace(/"/g, '&quot;')}"
+            src="https://www.youtube.com/embed/${encodeURIComponent(ytId)}?autoplay=0&rel=0&playsinline=1"
+            style="width:100%;height:100%;border:0;display:block;"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allowfullscreen>
+          </iframe>`, item.title);
+      }
+      return vpPlayerShell(`
+        <video id="${elId}" controls playsinline preload="metadata" style="width:100%;height:100%;">
+          <source src="${vpEsc(item.url)}" type="video/mp4">
+        </video>`, item.title);
+    }
+ 
+    function openVideo(id) {
+      let v = videos.find(item => item.id === id);
+      if(!v) return;
+
+      // Stopper le média précédent avant d'afficher le nouveau.
+      stopAllPlayback();
+      currentViewingVideo = v;
+ 
+      if(!historyList.some(item => item.id === v.id)) {
+        historyList.unshift({ ...v, comments: Array.isArray(v.comments) ? v.comments.slice(0, 50) : [] });
+        // Ne JAMAIS re-sérialiser les 100 000 vidéos juste pour l'historique.
+        saveHistoryOnly();
+      }
+ 
+      showPage('video');
+      const playerContainer = document.getElementById('player-container');
+      playerContainer.innerHTML = buildPlayerHtml(v, 'main-video-element');
+      vpBindVideoReady(playerContainer);
+      vpBindIframeReady(playerContainer);
+      // Publicité type YouTube : insertion dans l'interface sans supprimer le contenu.
+      const oldAd = document.getElementById('vp-video-ad-slot');
+      if (oldAd) oldAd.remove();
+      const ad = document.createElement('div');
+      ad.id = 'vp-video-ad-slot';
+      ad.innerHTML = vpAdHtml('Découvrez les nouveautés VibePulse');
+      playerContainer.parentElement.insertBefore(ad, playerContainer.nextSibling);
+
+      document.getElementById('viewing-video-title').innerText = v.title;
+      document.getElementById('viewing-channel-name').innerText = v.channel;
+      document.getElementById('viewing-channel-subs').innerText = v.subs || '0 abonnés';
+      document.getElementById('viewing-channel-pdp').innerText = v.channel.substring(0,2).toUpperCase();
+      document.getElementById('like-count').innerText = Number(v.likes || 0);
+ 
+      let likeBtn = document.getElementById('like-btn-action');
+      if (likedList.some(item => item.id === v.id)) {
+        likeBtn.classList.add('liked');
+      } else {
+        likeBtn.classList.remove('liked');
+      }
+ 
+      updateSubButtonState(v.channelId);
+ 
+      let side = document.getElementById('related-videos-sidebar');
+      side.innerHTML = `<h3>Vidéos suggérées</h3>`;
+      videos.filter(item => item.id !== id).forEach(item => {
+        side.innerHTML += `
+          <div class="video-card" style="display:flex; gap:10px; background:none; border:none;" onclick="openVideo(${item.id})">
+            <div style="width:120px; height:70px; border-radius:8px; background-size:cover; background-position:center; background-image:url('${item.thumb}')"></div>
+            <div>
+              <div style="font-size:13px; font-weight:bold; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${item.title}</div>
+              <div style="font-size:11px; color:var(--text-secondary); margin-top:4px;">${item.channel}</div>
+            </div>
+          </div>
+        `;
+      });
+ 
+      renderComments();
+    }
+ 
+    function applyVideoFilter(className) {
+      const container = document.getElementById('player-container');
+      if (!container) return;
+
+      // Les vidéos locales peuvent recevoir la classe directement.
+      const video = container.querySelector('video');
+      if (video) video.className = className;
+
+      // Les vidéos YouTube sont dans un iframe : le contenu interne est cross-origin,
+      // mais le rendu complet de l'iframe peut recevoir le filtre CSS.
+      const frame = container.querySelector('iframe');
+      if (frame) frame.className = className;
+
+      // Appliquer aussi au conteneur visuel pour les deux cas.
+      const stage = container.querySelector('.vp-video-stage');
+      if (stage) stage.className = 'vp-video-stage ' + className;
+    }
+ 
+    function renderComments() {
+      let list = document.getElementById('comments-list');
+      list.innerHTML = `<h4 style="margin: 15px 0 10px 0;">Commentaires (${(currentViewingVideo.comments || []).length})</h4>`;
+      if((currentViewingVideo.comments || []).length === 0) {
+        list.innerHTML += `<p style="font-size:13px; color:var(--text-secondary);">Soyez le premier à commenter !</p>`;
+        return;
+      }
+      currentViewingVideo.comments.forEach(c => {
+        list.innerHTML += `
+          <div class="comment-item">
+            <div class="pdp-btn" style="width:30px; height:30px; font-size:11px;">${c.user[0]}</div>
+            <div>
+              <strong>${c.user}</strong> <span style="font-size:11px; color:var(--text-secondary);">À l'instant</span>
+              <p style="margin-top:2px;">${c.text}</p>
+            </div>
+          </div>
+        `;
+      });
+    }
+ 
+    function postComment() {
+      let input = document.getElementById('comment-input');
+      if(!input.value.trim() || !currentViewingVideo) return;
+      
+      currentViewingVideo.comments.unshift({
+        user: currentChannel.name,
+        text: input.value.trim()
+      });
+      saveToStorage();
+      input.value = '';
+      renderComments();
+    }
+ 
+    function toggleLikeCurrentVideo() {
+      if(!currentViewingVideo) return;
+      let btn = document.getElementById('like-btn-action');
+      btn.classList.toggle('liked');
+      if(btn.classList.contains('liked')) {
+        currentViewingVideo.likes++;
+        if(!likedList.some(item => item.id === currentViewingVideo.id)) likedList.push(currentViewingVideo);
+      } else {
+        currentViewingVideo.likes = Math.max(0, currentViewingVideo.likes - 1);
+        likedList = likedList.filter(item => item.id !== currentViewingVideo.id);
+      }
+      document.getElementById('like-count').innerText = currentViewingVideo.likes;
+      saveToStorage();
+    }
+ 
+    // --- PARTAGE (vidéos ET shorts) ---
+    function shareViaSystemOrClipboard(title, url) {
+      if (navigator.share) {
+        navigator.share({ title: title, url: url }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(url);
+        alert('Lien copié dans le presse-papier !');
+      }
+    }
+ 
+    function shareCurrentVideo() {
+      if (!currentViewingVideo) return;
+      shareViaSystemOrClipboard(currentViewingVideo.title, window.location.href + '#video-' + currentViewingVideo.id);
+    }
+ 
+    function shareCurrentShort() {
+      if (shorts.length === 0) return;
+      let s = shorts[currentShortIndex];
+      shareViaSystemOrClipboard(s.title, window.location.href + '#short-' + s.id);
+    }
+ 
+    // --- SHORTS ---
+    let shortsPlayerInitialized = false;
+
+    function initShortsPlayer() {
+      if(shorts.length > 0) {
+        shortsPlayerInitialized = true;
+        loadShortData();
+      }
+    }
+ 
+    function playCurrentShort() {
+      loadShortData();
+    }
+ 
+    function loadShortData() {
+      if(shorts.length === 0) return;
+
+      // Coupe immédiatement l'ancien Short avant d'injecter le suivant.
+      const oldContainer = document.getElementById('short-media-container');
+      if (oldContainer) oldContainer.innerHTML = '';
+
+      let s = shorts[currentShortIndex];
+      let container = document.getElementById('short-media-container');
+
+      if (s.sourceType === 'youtube' && s.youtubeId) {
+        const ytId = String(s.youtubeId).trim();
+        const ytUrl = `https://www.youtube.com/watch?v=${encodeURIComponent(ytId)}`;
+        if (window.location.protocol === 'file:') {
+          container.innerHTML = `
+            <div style="width:100%;height:100%;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px;text-align:center;color:#fff;">
+              <img src="https://img.youtube.com/vi/${encodeURIComponent(ytId)}/hqdefault.jpg"
+                   style="width:92%;max-width:420px;aspect-ratio:9/16;object-fit:cover;border-radius:14px;margin-bottom:14px;"
+                   alt="">
+              <div style="font-weight:700;font-size:16px;margin-bottom:7px;">Short YouTube</div>
+              <div style="font-size:12px;opacity:.75;max-width:420px;margin-bottom:14px;">
+                Le lecteur intégré YouTube ne peut pas recevoir le Referer depuis un fichier <b>file://</b> (erreur 153).
+              </div>
+              <a href="${ytUrl}" target="_blank" rel="noopener"
+                 style="background:#ff0033;color:#fff;text-decoration:none;padding:11px 18px;border-radius:22px;font-weight:700;">
+                ▶ Regarder le Short sur YouTube
+              </a>
+            </div>`;
+        } else {
+          container.innerHTML = `
+            <iframe
+              id="short-video-player"
+              title="${String(s.title || 'Short YouTube').replace(/"/g, '&quot;')}"
+              src="${youtubeEmbedUrl(ytId, 1)}"
+              style="width:100%;height:100%;border:0;display:block;"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allowfullscreen>
+            </iframe>`;
+        }
+      } else if (s.sourceType === 'tiktok' && s.tiktokId) {
+        container.innerHTML = `
+          <div class="vp-video-stage" style="width:100%;height:100%;">
+            <div class="vp-video-loading" id="vp-loading-overlay">
+              <div class="vp-video-spinner"></div>
+              <div>Chargement du Short…</div>
+            </div>
+            <iframe loading="eager" id="short-video-player" src="https://www.tiktok.com/embed/v2/${s.tiktokId}?autoplay=0" referrerpolicy="strict-origin-when-cross-origin" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+          </div>`;
+        vpBindIframeReady(container);
+      } else {
+        container.innerHTML = `
+          <div class="vp-video-stage" style="width:100%;height:100%;">
+            <div class="vp-video-loading" id="vp-loading-overlay">
+              <div class="vp-video-spinner"></div>
+              <div>Chargement du Short…</div>
+              <small>La lecture démarre uniquement quand la vidéo est prête.</small>
+            </div>
+            <video id="short-video-player" loop playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;">
+              <source src="${vpEsc(s.url)}" type="video/mp4">
+            </video>
+          </div>`;
+        let player = document.getElementById('short-video-player');
+        player.muted = false;
+        player.currentTime = 0;
+        vpBindVideoReady(container);
+        player.addEventListener('canplay', () => {
+          const root = player.closest('.vp-video-stage');
+          const rect = root?.getBoundingClientRect();
+          if (rect && rect.width > 0 && rect.height > 0) {
+            requestAnimationFrame(() => vpHideLoadingAndPlay(player));
+          }
+        }, { once:true });
+      }
+
+      document.getElementById('short-channel-name').innerText = s.channel;
+      document.getElementById('short-title-text').innerText = s.title;
+      document.getElementById('short-audio-track').innerText = s.audio;
+
+      let audioIcon = document.getElementById('short-audio-icon');
+      audioIcon.className = (s.sourceType === 'youtube' || s.sourceType === 'tiktok') ? "fa-solid fa-volume-high" : "fa-solid fa-volume-high";
+
+      let badge = document.getElementById('short-ad-badge');
+      if(s.isAd) badge.style.display = 'block';
+      else badge.style.display = 'none';
+ 
+      let likeIcon = document.getElementById('short-like-icon');
+      let isLiked = likedShorts.some(item => item.id === s.id);
+      likeIcon.style.color = isLiked ? 'var(--accent-color)' : 'white';
+ 
+      renderShortComments();
+    }
+ 
+    function toggleShortAudio() {
+      let player = document.getElementById('short-video-player');
+      if (!player || player.tagName !== 'VIDEO') return; // le son des embeds YouTube/TikTok se règle dans leur propre lecteur
+      let icon = document.getElementById('short-audio-icon');
+      player.muted = !player.muted;
+      icon.className = player.muted ? "fa-solid fa-volume-xmark" : "fa-solid fa-volume-high";
+    }
+ 
+    function nextShort() {
+      if(shorts.length === 0) return;
+      currentShortIndex = (currentShortIndex + 1) % shorts.length;
+      loadShortData();
+    }
+ 
+    function prevShort() {
+      if(shorts.length === 0) return;
+      currentShortIndex = (currentShortIndex - 1 + shorts.length) % shorts.length;
+      loadShortData();
+    }
+ 
+    function setupShortsNavigation() {
+      let area = document.getElementById('shorts-scroll-area');
+      if (!area) return;
+ 
+      area.addEventListener('wheel', function(e) {
+        if (shorts.length <= 1) return;
+        e.preventDefault();
+        if (shortsWheelLocked) return;
+        if (Math.abs(e.deltaY) < 8) return;
+        shortsWheelLocked = true;
+        if (e.deltaY > 0) nextShort(); else prevShort();
+        setTimeout(() => { shortsWheelLocked = false; }, 450);
+      }, { passive: false });
+ 
+      area.addEventListener('touchstart', function(e) {
+        shortsTouchStartY = e.touches[0].clientY;
+      }, { passive: true });
+ 
+      area.addEventListener('touchend', function(e) {
+        if (shortsTouchStartY === null || shorts.length <= 1) { shortsTouchStartY = null; return; }
+        let endY = e.changedTouches[0].clientY;
+        let diff = shortsTouchStartY - endY;
+        shortsTouchStartY = null;
+        if (Math.abs(diff) > 55) {
+          if (diff > 0) nextShort(); else prevShort();
+        }
+      }, { passive: true });
+
+      // Navigation tactile/souris unifiée : fonctionne aussi lorsque le média
+      // (notamment un iframe YouTube) est sous le doigt.
+      area.addEventListener('pointerdown', function(e) {
+        if (shorts.length <= 1) return;
+        shortsPointerStartY = e.clientY;
+        shortsPointerActive = true;
+      }, { passive: true });
+
+      area.addEventListener('pointerup', function(e) {
+        if (!shortsPointerActive || shortsPointerStartY === null || shorts.length <= 1) {
+          shortsPointerActive = false;
+          shortsPointerStartY = null;
+          return;
+        }
+        const diff = shortsPointerStartY - e.clientY;
+        shortsPointerActive = false;
+        shortsPointerStartY = null;
+        if (Math.abs(diff) > 45) {
+          if (diff > 0) nextShort(); else prevShort();
+        }
+      }, { passive: true });
+
+      area.addEventListener('pointercancel', function() {
+        shortsPointerActive = false;
+        shortsPointerStartY = null;
+      }, { passive: true });
+ 
+      document.addEventListener('keydown', function(e) {
+        let shortsPage = document.getElementById('page-shorts');
+        if (!shortsPage || !shortsPage.classList.contains('active')) return;
+        if (e.key === 'ArrowDown') { e.preventDefault(); nextShort(); }
+        if (e.key === 'ArrowUp') { e.preventDefault(); prevShort(); }
+      });
+    }
+ 
+    function likeShort() {
+      if(shorts.length === 0) return;
+      let s = shorts[currentShortIndex];
+      let icon = document.getElementById('short-like-icon');
+      let idx = likedShorts.findIndex(item => item.id === s.id);
+ 
+      if(idx > -1) {
+        likedShorts.splice(idx, 1);
+        icon.style.color = 'white';
+        s.likes = Math.max(0, (s.likes || 0) - 1);
+      } else {
+        likedShorts.push(s);
+        icon.style.color = 'var(--accent-color)';
+        s.likes = (s.likes || 0) + 1;
+      }
+      saveToStorage();
+    }
+ 
+    function toggleShortComments() {
+      document.getElementById('shorts-comments-panel').classList.toggle('open');
+    }
+ 
+    function renderShortComments() {
+      if(shorts.length === 0) return;
+      let s = shorts[currentShortIndex];
+      let list = document.getElementById('shorts-comments-list');
+      list.innerHTML = '';
+      if(!s.comments || s.comments.length === 0) {
+        list.innerHTML = `<p style="color:var(--text-secondary); text-align:center; margin-top:20px;">Aucun commentaire.</p>`;
+        return;
+      }
+      s.comments.forEach(c => {
+        list.innerHTML += `<div><strong>${c.user}</strong>: ${c.text}</div>`;
+      });
+    }
+ 
+    function addShortComment() {
+      let input = document.getElementById('short-comment-input');
+      if(!input.value.trim() || shorts.length === 0) return;
+      let s = shorts[currentShortIndex];
+      if(!s.comments) s.comments = [];
+      s.comments.push({ user: currentChannel.name, text: input.value.trim() });
+      saveToStorage();
+      input.value = '';
+      renderShortComments();
+    }
+ 
+    function remixSound() {
+      alert("Redirection vers le Studio Remix Audio VibePulse !");
+    }
+ 
+    function openShortById(id) {
+      let idx = shorts.findIndex(s => String(s.id) === String(id));
+      if(idx === -1) { alert("Ce short n'existe plus."); return; }
+      currentShortIndex = idx;
+      showPage('shorts');
+      loadShortData();
+    }
+ 
+    // --- ABONNEMENTS ET CHAÎNES ---
+    function toggleSubscribeFromPlayer() {
+      if(!currentViewingVideo) return;
+      toggleSubscription(currentViewingVideo.channelId, currentViewingVideo.channel);
+    }
+ 
+    function toggleSubscribeFromProfile() {
+      toggleSubscription(activeChannelId, document.getElementById('channel-page-name').innerText);
+    }
+ 
+    function toggleSubscription(cId, cName) {
+      let index = subscriptions.findIndex(sub => sub.id === cId);
+      if(index > -1) {
+        subscriptions.splice(index, 1);
+        alert(`Désabonné de ${cName}`);
+      } else {
+        subscriptions.push({ id: cId, name: cName, subs: "0 abonnés" });
+        alert(`Abonné à ${cName} avec succès ! 🎉`);
+      }
+      saveToStorage();
+      if(currentViewingVideo) updateSubButtonState(currentViewingVideo.channelId);
+      if(activeChannelId === cId && document.getElementById('page-channel').classList.contains('active')) {
+        openChannelView(activeChannelId);
+      }
+    }
+ 
+    function updateSubButtonState(cId) {
+      let isSub = subscriptions.some(sub => sub.id === cId);
+      let btn = document.getElementById('viewing-sub-btn');
+      if(btn) {
+        btn.innerText = isSub ? "Abonné ✓" : "S'abonner";
+        btn.style.background = isSub ? "var(--bg-hover)" : "var(--accent-color)";
+      }
+    }
+ 
+    let activeChannelId = null;
+    function openChannelView(cId, element) {
+      closeMobileSidebarIfOpen();
+      activeChannelId = cId;
+      showPage('channel');
+      if(element) {
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        element.classList.add('active');
+      }
+ 
+      let cName = cId === currentChannel.id ? currentChannel.name : "Créateur";
+      let cHandle = cId === currentChannel.id ? currentChannel.handle : "@createur";
+      
+      document.getElementById('channel-page-name').innerText = cName;
+      document.getElementById('channel-page-handle').innerHTML = `${cHandle} • <span id="channel-sub-count">0</span> abonnés`;
+      document.getElementById('channel-page-pdp').innerText = cName.substring(0,2).toUpperCase();
+      
+      let subBtn = document.getElementById('channel-page-sub-btn');
+      let msgBtn = document.getElementById('channel-msg-btn');
+      let callBtn = document.getElementById('channel-call-btn');
+      
+      if(cId !== currentChannel.id) {
+        subBtn.style.display = 'block';
+        msgBtn.style.display = 'block';
+        callBtn.style.display = 'block';
+        let isSub = subscriptions.some(s => s.id === cId);
+        subBtn.innerText = isSub ? "Abonné ✓" : "S'abonner";
+      } else {
+        subBtn.style.display = 'none';
+        msgBtn.style.display = 'none';
+        callBtn.style.display = 'none';
+      }
+ 
+      let grid = document.getElementById('channel-videos-grid');
+      grid.innerHTML = '';
+      let channelVideos = videos.filter(v => v.channelId === cId);
+      if(channelVideos.length === 0) {
+        grid.innerHTML = `<p style="color:var(--text-secondary);">Aucune vidéo publiée par cette chaîne pour le moment.</p>`;
+      } else {
+        channelVideos.forEach(v => {
+          grid.innerHTML += `
+            <div class="video-card" onclick="openVideo(${v.id})">
+              <div class="thumb" style="background-image: url('${v.thumb}')"></div>
+              <div class="video-details">
+                <div class="video-title">${v.title}</div>
+                <div class="video-channel">${v.views} vues</div>
+              </div>
+            </div>
+          `;
+        });
+      }
+ 
+      let channelShorts = shorts.filter(s => s.channelId === cId);
+      let shortsSection = document.getElementById('channel-shorts-section');
+      let shortsRow = document.getElementById('channel-shorts-row');
+      if(channelShorts.length > 0) {
+        shortsSection.style.display = 'block';
+        shortsRow.innerHTML = '';
+        channelShorts.forEach(s => {
+          shortsRow.innerHTML += `
+            <div class="home-short-mini" onclick="openShortById(${s.id})">
+              <video src="${s.url}" muted></video>
+              <div class="home-short-mini-overlay">
+                <div style="font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.title}</div>
+              </div>
+            </div>
+          `;
+        });
+      } else {
+        shortsSection.style.display = 'none';
+      }
+    }
+ 
+    function renderSubscriptions() {
+      let grid = document.getElementById('subscriptions-grid');
+      grid.innerHTML = '';
+      if(subscriptions.length === 0) {
+        grid.innerHTML = `<p style="color:var(--text-secondary);">Aucun abonnement pour le moment.</p>`;
+        return;
+      }
+      subscriptions.forEach(sub => {
+        grid.innerHTML += `
+          <div class="video-card" onclick="openChannelView('${sub.id}')" style="padding:15px; text-align:center;">
+            <div class="pdp-btn" style="width:60px; height:60px; margin:0 auto 10px auto; font-size:20px;">${sub.name[0]}</div>
+            <h4>${sub.name}</h4>
+            <p style="font-size:12px; color:var(--text-secondary); margin-top:4px;">${sub.subs}</p>
+          </div>
+        `;
+      });
+    }
+ 
+    function renderHistory() {
+      let grid = document.getElementById('history-grid');
+      grid.innerHTML = '';
+      if(historyList.length === 0) {
+        grid.innerHTML = `<p style="color:var(--text-secondary);">Aucun historique.</p>`;
+        return;
+      }
+      historyList.forEach(v => {
+        grid.innerHTML += `
+          <div class="video-card" onclick="openVideo(${v.id})">
+            <div class="thumb" style="background-image: url('${v.thumb}')"></div>
+            <div class="video-details">
+              <div class="video-title">${v.title}</div>
+              <div class="video-channel">${v.channel}</div>
+            </div>
+          </div>
+        `;
+      });
+    }
+ 
+    function renderLiked() {
+      let grid = document.getElementById('liked-grid');
+      grid.innerHTML = '';
+      if(likedList.length === 0 && likedShorts.length === 0) {
+        grid.innerHTML = `<p style="color:var(--text-secondary);">Aucune vidéo ni short aimé pour le moment.</p>`;
+        return;
+      }
+      likedList.forEach(v => {
+        grid.innerHTML += `
+          <div class="video-card" onclick="openVideo(${v.id})">
+            <div class="thumb" style="background-image: url('${v.thumb}')"><span class="badge-type">Vidéo</span></div>
+            <div class="video-details">
+              <div class="video-title">${v.title}</div>
+              <div class="video-channel">${v.channel}</div>
+            </div>
+          </div>
+        `;
+      });
+      likedShorts.forEach(s => {
+        grid.innerHTML += `
+          <div class="video-card" onclick="openShortById(${s.id})">
+            <div class="thumb" style="background:#000; display:flex; align-items:center; justify-content:center;">
+              <i class="fa-solid fa-bolt-lightning" style="color:#ffaa00; font-size:36px;"></i>
+              <span class="badge-type">Short</span>
+            </div>
+            <div class="video-details">
+              <div class="video-title">${s.title}</div>
+              <div class="video-channel">${s.channel}</div>
+            </div>
+          </div>
+        `;
+      });
+    }
+ 
+    // --- RECHERCHE ---
+    function handleSearchInput() {
+      const raw = document.getElementById('search-input').value;
+      const query = normalizeSearch(raw);
+      const box = document.getElementById('search-suggestions');
+      if (!query) {
+        box.style.display = 'none';
+        box.innerHTML = '';
+        return;
+      }
+
+      // Affichage immédiat des premiers résultats déjà disponibles.
+      const matches = [];
+      for (const entry of vpSearchIndex) {
+        if (entry.text.includes(query)) {
+          matches.push(entry);
+          if (matches.length >= 12) break;
+        }
+      }
+
+      box.style.display = matches.length ? 'block' : 'none';
+      box.innerHTML = '';
+      for (const m of matches) {
+        const item = document.createElement('div');
+        item.className = 'search-suggestion-item';
+        const source = m.kind === 'short'
+          ? shorts.find(s => s.id === m.id)
+          : videos.find(v => v.id === m.id);
+        item.textContent = `${m.kind === 'short' ? '⚡' : '🎬'} ${source?.title || 'Résultat'}`;
+        item.onclick = () => {
+          box.style.display = 'none';
+          if (m.kind === 'short') openShortById(m.id);
+          else openVideo(m.id);
+        };
+        box.appendChild(item);
+      }
+
+      // Construction en arrière-plan si l'index n'est pas prêt.
+      if (!vpSearchIndexReady) vpBuildSearchIndex();
+    }
+
+    function handleSearch() {
+      const query = normalizeSearch(document.getElementById('search-input').value);
+      if (!query) return;
+
+      const entry = vpSearchIndex.find(x => x.text.includes(query));
+      if (entry) {
+        document.getElementById('search-suggestions').style.display = 'none';
+        if (entry.kind === 'short') openShortById(entry.id);
+        else openVideo(entry.id);
+        return;
+      }
+
+      // Recherche de secours sans casser le lancement.
+      for (const v of videos) {
+        if (normalizeSearch([v.title, v.channel, v.category].join(' ')).includes(query)) {
+          openVideo(v.id);
+          return;
+        }
+      }
+      for (const s of shorts) {
+        if (normalizeSearch([s.title, s.channel].join(' ')).includes(query)) {
+          openShortById(s.id);
+          return;
+        }
+      }
+      alert("Aucun résultat.");
+    }
+
+    function filterCategory(cat, element) {
+      showPage('home');
+      if(element) {
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        element.classList.add('active');
+      }
+      document.getElementById('home-title').innerText = "Catégorie : " + cat;
+      let grid = document.getElementById('home-videos-grid');
+      grid.innerHTML = '';
+      let filtered = videos.filter(v => v.category === cat);
+      if(filtered.length === 0) {
+        grid.innerHTML = `<p style="color:var(--text-secondary);">Aucune vidéo dans cette catégorie.</p>`;
+        return;
+      }
+      filtered.forEach(v => {
+        grid.innerHTML += `
+          <div class="video-card" onclick="openVideo(${v.id})">
+            <div class="thumb" style="background-image: url('${v.thumb}')"><span class="badge-type">${v.category}</span></div>
+            <div class="video-details">
+              <div class="video-title">${v.title}</div>
+              <div class="video-channel">${v.channel}</div>
+            </div>
+          </div>
+        `;
+      });
+    }
+ 
+    // --- PUBLICATION (upload fichier vers le cloud, lien direct, ou YouTube) ---
+    function openModal(id) {
+      document.getElementById(id).classList.add('active');
+      if(id === 'create-modal') {
+        updateCreateFileAccept();
+        setCreateSource('file');
+      }
+    }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+ 
+    function setCreateSource(mode) {
+      createSourceMode = mode;
+      document.getElementById('create-file-group').style.display = mode === 'file' ? 'block' : 'none';
+      document.getElementById('create-link-group').style.display = mode === 'link' ? 'block' : 'none';
+      document.getElementById('create-import-group').style.display = mode === 'import' ? 'block' : 'none';
+      document.getElementById('source-btn-file').style.background = mode === 'file' ? 'var(--accent-color)' : 'var(--bg-hover)';
+      document.getElementById('source-btn-link').style.background = mode === 'link' ? 'var(--accent-color)' : 'var(--bg-hover)';
+      document.getElementById('source-btn-import').style.background = mode === 'import' ? 'var(--accent-color)' : 'var(--bg-hover)';
+      if (mode === 'import' && youtubeApiKey) {
+        document.getElementById('import-yt-key').value = youtubeApiKey;
+      }
+    }
+
+    function toggleImportPlatform() {
+      let platform = document.getElementById('import-platform').value;
+      document.getElementById('import-yt-block').style.display = platform === 'youtube' ? 'block' : 'none';
+      document.getElementById('import-tiktok-block').style.display = platform === 'tiktok' ? 'block' : 'none';
+    }
+
+    // =========================================================
+    // IMPORT EN MASSE — YouTube (Data API v3) & TikTok (oEmbed)
+    // =========================================================
+    function extractTikTokVideoId(url) {
+      if (!url) return null;
+      let m = url.match(/tiktok\.com\/@[\w.-]+\/video\/(\d+)/) || url.match(/\/video\/(\d+)/);
+      return m ? m[1] : null;
+    }
+
+    async function youtubeApiRequest(url) {
+      let res = await fetch(url);
+      let data = await res.json();
+      if (data.error) {
+        let reason = (data.error.errors && data.error.errors[0] && data.error.errors[0].reason) || '';
+        if (reason === 'quotaExceeded') throw new Error("Quota de l'API YouTube dépassé pour aujourd'hui. Réessaie demain ou utilise une autre clé API.");
+        if (reason === 'keyInvalid' || data.error.code === 400) throw new Error("Clé API YouTube invalide. Vérifie qu'elle est bien activée pour 'YouTube Data API v3' dans Google Cloud Console.");
+        throw new Error(data.error.message || "Erreur de l'API YouTube.");
+      }
+      return data;
+    }
+
+    // Résout un handle (@nom), une URL de chaîne ou un ID UC... en véritable channelId YouTube
+    async function resolveYouTubeChannelId(rawInput, apiKey) {
+      let input = rawInput.trim();
+
+      // Cas 1 : c'est déjà un ID de chaîne (UC...)
+      let ucMatch = input.match(/^UC[\w-]{22}$/) || input.match(/youtube\.com\/channel\/(UC[\w-]{22})/);
+      if (ucMatch) {
+        let id = ucMatch[1] || ucMatch[0];
+        let data = await youtubeApiRequest(`https://www.googleapis.com/youtube/v3/channels?part=snippet,contentDetails&id=${id}&key=${apiKey}`);
+        if (data.items && data.items.length > 0) return data.items[0];
+        throw new Error("Aucune chaîne trouvée avec cet ID.");
+      }
+
+      // Cas 2 : extraire un handle depuis une URL (@xxx) ou saisi directement
+      let handle = null;
+      let urlHandleMatch = input.match(/youtube\.com\/@([\w.-]+)/);
+      if (urlHandleMatch) handle = urlHandleMatch[1];
+      else if (input.startsWith('@')) handle = input.slice(1);
+      else if (!input.includes('/') && !input.includes('.')) handle = input; // saisie brute type "nomdelachaine"
+
+      if (handle) {
+        let data = await youtubeApiRequest(`https://www.googleapis.com/youtube/v3/channels?part=snippet,contentDetails&forHandle=@${encodeURIComponent(handle)}&key=${apiKey}`);
+        if (data.items && data.items.length > 0) return data.items[0];
+      }
+
+      // Cas 3 (repli) : recherche par mot-clé (fonctionne aussi pour /c/ et /user/ anciens formats)
+      let query = handle || input;
+      let searchData = await youtubeApiRequest(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&maxResults=1&q=${encodeURIComponent(query)}&key=${apiKey}`);
+      if (!searchData.items || searchData.items.length === 0) {
+        throw new Error("Chaîne introuvable. Vérifie le handle, l'URL ou l'ID de la chaîne.");
+      }
+      let foundId = searchData.items[0].id.channelId || searchData.items[0].snippet.channelId;
+      let channelData = await youtubeApiRequest(`https://www.googleapis.com/youtube/v3/channels?part=snippet,contentDetails&id=${foundId}&key=${apiKey}`);
+      if (!channelData.items || channelData.items.length === 0) throw new Error("Chaîne introuvable.");
+      return channelData.items[0];
+    }
+
+    // Convertit une durée ISO 8601 (ex: PT1M32S) en secondes
+    function iso8601DurationToSeconds(duration) {
+      let m = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+      if (!m) return 0;
+      let h = parseInt(m[1] || '0', 10), min = parseInt(m[2] || '0', 10), s = parseInt(m[3] || '0', 10);
+      return h * 3600 + min * 60 + s;
+    }
+
+    async function importYouTubeChannel() {
+      const apiKey = document.getElementById('import-yt-key').value.trim() || youtubeApiKey;
+      const channelInput = document.getElementById('import-yt-channel').value.trim();
+      const status = document.getElementById('import-yt-status');
+      const btn = document.querySelector('#import-yt-block .btn-primary');
+      const maxVideos = 500;
+
+      if (!apiKey) {
+        status.innerText = "⚠️ La clé YouTube Data API v3 doit être renseignée.";
+        return;
+      }
+      if (!channelInput) {
+        status.innerText = "⚠️ Indique une chaîne YouTube (@nom, URL ou ID UC...).";
+        return;
+      }
+
+      localStorage.setItem('vp_youtube_api_key', apiKey);
+      youtubeApiKey = apiKey;
+      btn.disabled = true;
+      const originalBtnText = btn.innerText;
+
+      try {
+        status.innerText = "🔎 Vérification de la chaîne...";
+        const channel = await resolveYouTubeChannelId(channelInput, apiKey);
+        const channelId = channel.id;
+        const channelTitle = channel.snippet.title;
+        const channelThumb = channel.snippet.thumbnails &&
+          (channel.snippet.thumbnails.medium || channel.snippet.thumbnails.default)?.url;
+        const uploadsPlaylistId = channel.contentDetails?.relatedPlaylists?.uploads;
+
+        if (!uploadsPlaylistId) throw new Error("Impossible de trouver les vidéos publiques de cette chaîne.");
+
+        externalChannels[channelId] = {
+          name: channelTitle,
+          handle: '@' + channelTitle.replace(/\s+/g, '').toLowerCase(),
+          avatar: channelThumb,
+          platform: 'youtube'
+        };
+
+        status.innerText = `📥 Recherche des vidéos et Shorts de "${channelTitle}"...`;
+
+        const videoIds = [];
+        let pageToken = '';
+
+        do {
+          const pageSize = Math.min(50, maxVideos - videoIds.length);
+          const params = new URLSearchParams({
+            part: 'snippet,contentDetails',
+            maxResults: String(pageSize),
+            playlistId: uploadsPlaylistId,
+            key: apiKey
+          });
+          if (pageToken) params.set('pageToken', pageToken);
+
+          const data = await youtubeApiRequest(
+            `https://www.googleapis.com/youtube/v3/playlistItems?${params.toString()}`
+          );
+
+          for (const item of (data.items || [])) {
+            const id = item.contentDetails?.videoId;
+            if (id && !videoIds.includes(id)) videoIds.push(id);
+          }
+
+          pageToken = data.nextPageToken || '';
+          status.innerText = `📥 ${videoIds.length} contenu(s) trouvé(s)...`;
+        } while (pageToken && videoIds.length < maxVideos);
+
+        if (!videoIds.length) {
+          status.innerText = "Cette chaîne ne semble avoir aucun contenu public.";
+          return;
+        }
+
+        const existingIds = new Set(
+          [...videos, ...shorts].map(x => x.youtubeId).filter(Boolean)
+        );
+
+        let addedVideos = 0;
+        let addedShorts = 0;
+
+        for (let i = 0; i < videoIds.length; i += 50) {
+          const chunk = videoIds.slice(i, i + 50);
+          const params = new URLSearchParams({
+            part: 'snippet,contentDetails,statistics',
+            id: chunk.join(','),
+            key: apiKey
+          });
+
+          const data = await youtubeApiRequest(
+            `https://www.googleapis.com/youtube/v3/videos?${params.toString()}`
+          );
+
+          for (const vid of (data.items || [])) {
+            if (existingIds.has(vid.id)) continue;
+
+            const durationSec = iso8601DurationToSeconds(
+              vid.contentDetails?.duration || ''
+            );
+            const title = vid.snippet?.title || 'Vidéo YouTube';
+            const isHashShort = /(^|\s)#shorts(\s|$)/i.test(title);
+
+            // L'API YouTube ne possède pas de champ "isShort".
+            // Les Shorts peuvent durer jusqu'à 3 minutes. On utilise donc
+            // #shorts en priorité, puis la durée <= 180 s.
+            const isShort = isHashShort || (durationSec > 0 && durationSec <= 180);
+
+            const thumbs = vid.snippet?.thumbnails || {};
+            const thumb = (
+              thumbs.maxres || thumbs.high || thumbs.medium || thumbs.default
+            )?.url || `https://img.youtube.com/vi/${vid.id}/hqdefault.jpg`;
+
+            const base = {
+              id: Date.now() + Math.floor(Math.random() * 100000),
+              title,
+              channel: channelTitle,
+              channelId,
+              sourceType: 'youtube',
+              youtubeId: vid.id,
+              thumb,
+              likes: parseInt(vid.statistics?.likeCount || '0', 10),
+              comments: []
+            };
+
+            if (isShort) {
+              shorts.unshift({
+                ...base,
+                channel: '@' + channelTitle.replace(/\s+/g, '').toLowerCase(),
+                audio: "Son original - " + channelTitle,
+                isAd: false
+              });
+              addedShorts++;
+            } else {
+              videos.unshift({
+                ...base,
+                subs: "Importé",
+                views: (vid.statistics?.viewCount || '0') + " vues",
+                category: "Divertissement",
+                type: "video"
+              });
+              addedVideos++;
+            }
+
+            existingIds.add(vid.id);
+          }
+
+          status.innerText =
+            `🔍 Vérification... ${Math.min(i + chunk.length, videoIds.length)}/${videoIds.length}`;
+        }
+
+        saveToStorage();
+        renderHome();
+        renderStories();
+
+        status.innerText =
+          `✅ ${channelTitle} : ${addedVideos} vidéo(s) + ${addedShorts} Short(s) importé(s).`;
+
+        if (addedVideos || addedShorts) {
+          addNotification(
+            `📺 ${channelTitle} : ${addedVideos} vidéo(s) et ${addedShorts} Short(s) importés.`,
+            'fa-cloud-arrow-down'
+          );
+        }
+      } catch (err) {
+        console.error(err);
+        status.innerText = "❌ " + (err?.message || "Erreur pendant l'import YouTube.");
+      } finally {
+        btn.disabled = false;
+        btn.innerText = originalBtnText;
+      }
+    }
+
+    async function importTikTokLinks() {
+      let raw = document.getElementById('import-tiktok-links').value;
+      let links = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      let status = document.getElementById('import-tiktok-status');
+      let btn = document.querySelector('#import-tiktok-block .btn-primary');
+
+      if (links.length === 0) { status.innerText = "⚠️ Colle au moins un lien TikTok."; return; }
+
+      btn.disabled = true;
+      let originalBtnText = btn.innerText;
+      let added = 0, failed = 0;
+
+      for (let i = 0; i < links.length; i++) {
+        let link = links[i];
+        status.innerText = `📥 Import ${i + 1}/${links.length}...`;
+        try {
+          let tiktokId = extractTikTokVideoId(link);
+          if (!tiktokId) throw new Error("ID vidéo introuvable dans ce lien (les liens raccourcis vm.tiktok.com ne sont pas supportés, utilise le lien complet).");
+
+          let res = await fetch(`https://www.tiktok.com/oembed?url=${encodeURIComponent(link)}`);
+          if (!res.ok) throw new Error("Vidéo introuvable ou privée.");
+          let data = await res.json();
+
+          if (shorts.some(s => s.tiktokId === tiktokId)) { continue; }
+
+          let authorHandle = '@' + (data.author_unique_id || data.author_name || 'tiktok').replace(/\s+/g, '');
+          externalChannels['tiktok_' + (data.author_unique_id || data.author_name)] = { name: data.author_name || authorHandle, handle: authorHandle, avatar: data.thumbnail_url, platform: 'tiktok' };
+
+          shorts.unshift({
+            id: Date.now() + Math.floor(Math.random() * 1000), title: data.title || "Vidéo TikTok",
+            channel: authorHandle, channelId: 'tiktok_' + (data.author_unique_id || data.author_name),
+            sourceType: 'tiktok', tiktokId: tiktokId, thumb: data.thumbnail_url,
+            likes: 0, audio: "Son original TikTok", isAd: false, comments: []
+          });
+          added++;
+        } catch (err) {
+          console.error(err);
+          failed++;
+        }
+      }
+
+      saveToStorage();
+      renderHome();
+      if (added > 0) addNotification(`🎵 Import TikTok terminé : ${added} vidéo(s) ajoutée(s).`, 'fa-cloud-arrow-down');
+      status.innerText = `✅ ${added} vidéo(s) importée(s)` + (failed > 0 ? `, ❌ ${failed} échec(s) (lien invalide, vidéo privée, ou navigateur bloquant les requêtes cross-origin — teste en servant la page via http:// plutôt qu'en fichier local).` : '.');
+      btn.disabled = false;
+      btn.innerText = originalBtnText;
+    }
+ 
+    function updateCreateFileAccept() {
+      let type = document.getElementById('create-type').value;
+      let fileInput = document.getElementById('create-file');
+      fileInput.accept = type === 'story' ? 'image/*' : 'video/*';
+    }
+ 
+    function previewCreateFile() {
+      let input = document.getElementById('create-file');
+      let preview = document.getElementById('create-file-preview');
+      if(input.files && input.files[0]) {
+        let f = input.files[0];
+        preview.innerText = `Fichier sélectionné : ${f.name} (${(f.size/1024/1024).toFixed(2)} Mo)`;
+      } else {
+        preview.innerText = '';
+      }
+    }
+ 
+    function readFileAsDataURL(file) {
+      return new Promise((resolve, reject) => {
+        let reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+ 
+    // Upload vers Cloudinary (compte gratuit) si CLOUD_CONFIG est renseigné.
+    // Renvoie l'URL publique du fichier hébergé sur le cloud, ou null si
+    // le cloud n'est pas configuré (dans ce cas on retombe sur le stockage local).
+    function uploadFileToCloud(file, resourceType) {
+      return new Promise((resolve, reject) => {
+        if (!cloudIsConfigured()) { resolve(null); return; }
+        let progressEl = document.getElementById('create-upload-progress');
+        progressEl.style.display = 'block';
+        progressEl.innerText = 'Envoi vers le cloud... 0%';
+ 
+        let form = new FormData();
+        form.append('file', file);
+        form.append('upload_preset', CLOUD_CONFIG.uploadPreset);
+ 
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUD_CONFIG.cloudName}/${resourceType}/upload`);
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            let pct = Math.round((e.loaded / e.total) * 100);
+            progressEl.innerText = 'Envoi vers le cloud... ' + pct + '%';
+          }
+        };
+        xhr.onload = () => {
+          progressEl.style.display = 'none';
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              let data = JSON.parse(xhr.responseText);
+              resolve(data.secure_url);
+            } catch (e) { reject(e); }
+          } else {
+            reject(new Error("Échec de l'envoi vers le cloud (statut " + xhr.status + ")"));
+          }
+        };
+        xhr.onerror = () => { progressEl.style.display = 'none'; reject(new Error("Erreur réseau pendant l'envoi")); };
+        xhr.send(form);
+      });
+    }
+ 
+    function generateVideoThumbnail(videoUrl) {
+      return new Promise((resolve) => {
+        try {
+          const video = document.createElement('video');
+          video.crossOrigin = 'anonymous';
+          video.src = videoUrl;
+          video.muted = true;
+          video.playsInline = true;
+          let done = false;
+          const finish = (result) => { if(!done) { done = true; resolve(result); } };
+          const timeoutId = setTimeout(() => finish(null), 5000);
+ 
+          video.addEventListener('loadeddata', () => {
+            try { video.currentTime = Math.min(1, (video.duration || 2) / 2); }
+            catch(e) { clearTimeout(timeoutId); finish(null); }
+          });
+          video.addEventListener('seeked', () => {
+            try {
+              const canvas = document.createElement('canvas');
+              canvas.width = video.videoWidth || 480;
+              canvas.height = video.videoHeight || 270;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+              clearTimeout(timeoutId);
+              finish(canvas.toDataURL('image/jpeg', 0.7));
+            } catch(e) { clearTimeout(timeoutId); finish(null); }
+          });
+          video.addEventListener('error', () => { clearTimeout(timeoutId); finish(null); });
+        } catch(e) {
+          resolve(null);
+        }
+      });
+    }
+ 
+    function resetCreateForm() {
+      document.getElementById('create-title').value = '';
+      document.getElementById('create-file').value = '';
+      document.getElementById('create-file-preview').innerText = '';
+      document.getElementById('create-link').value = '';
+    }
+ 
+    async function publishContent() {
+      let type = document.getElementById('create-type').value;
+      let title = document.getElementById('create-title').value.trim();
+      let fileInput = document.getElementById('create-file');
+      let linkInput = document.getElementById('create-link').value.trim();
+      let category = document.getElementById('create-category').value;
+ 
+      if(!title) {
+        alert("Veuillez entrer un titre/texte !");
+        return;
+      }
+ 
+      let submitBtn = document.querySelector('#create-modal .btn-primary');
+      let originalText = submitBtn.innerText;
+ 
+      // --- Cas 1 : lien YouTube ou URL directe ---
+      if (createSourceMode === 'link') {
+        if (!linkInput) { alert("Colle un lien YouTube ou une URL vidéo directe !"); return; }
+        let ytId = extractYouTubeId(linkInput);
+        submitBtn.innerText = "Publication...";
+        submitBtn.disabled = true;
+        try {
+          if (ytId) {
+            const looksLikeShort = type === 'short' || /youtube\.com\/shorts\//i.test(linkInput);
+            const baseYouTube = {
+              id: Date.now(), title: title, channel: currentChannel.name, channelId: currentChannel.id,
+              sourceType: "youtube", youtubeId: ytId,
+              thumb: `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`,
+              likes: 0, comments: []
+            };
+            if (looksLikeShort) {
+              shorts.unshift({
+                ...baseYouTube,
+                channel: currentChannel.handle,
+                audio: "Son original - " + currentChannel.name,
+                isAd: false
+              });
+            } else {
+              videos.unshift({
+                ...baseYouTube,
+                subs: "0 abonnés", views: "1 vue", category: category, type: "video"
+              });
+            }
+          } else {
+            // URL directe (déjà hébergée quelque part)
+            if (type === 'video') {
+              videos.unshift({
+                id: Date.now(), title: title, channel: currentChannel.name, channelId: currentChannel.id,
+                subs: "0 abonnés", views: "1 vue", category: category, type: "video",
+                sourceType: "url", url: linkInput,
+                thumb: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500",
+                likes: 0, comments: []
+              });
+            } else if (type === 'short') {
+              shorts.unshift({
+                id: Date.now(), title: title, channel: currentChannel.handle, channelId: currentChannel.id,
+                url: linkInput, likes: 0, audio: "Son original - " + currentChannel.name, isAd: false, comments: []
+              });
+            } else {
+              stories.unshift({ id: Date.now(), name: currentChannel.name, title: title, bg: linkInput });
+            }
+          }
+          saveToStorage();
+          closeModal('create-modal');
+          resetCreateForm();
+          alert("Publication réussie sur VibePulse ! 🚀");
+          renderHome();
+          renderStories();
+        } catch(err) {
+          console.error(err);
+          alert("Lien invalide ou inaccessible. Vérifie l'URL et réessaie.");
+        } finally {
+          submitBtn.innerText = originalText;
+          submitBtn.disabled = false;
+        }
+        return;
+      }
+ 
+      // --- Cas 2 : fichier depuis l'appareil ---
+      if(!fileInput.files || fileInput.files.length === 0) {
+        alert("Sélectionne un fichier, ou bascule sur 'Lien / YouTube' !");
+        return;
+      }
+ 
+      let file = fileInput.files[0];
+      const cloudReady = cloudIsConfigured();
+      const MAX_LOCAL_SIZE = 15 * 1024 * 1024; // ~15 Mo si le cloud n'est pas configuré
+      if(!cloudReady && file.size > MAX_LOCAL_SIZE) {
+        let ok = confirm("Ce fichier est volumineux (" + (file.size/1024/1024).toFixed(1) + " Mo) et le cloud n'est pas configuré : il sera stocké dans le navigateur et pourrait ne pas être sauvegardé. Configure CLOUD_CONFIG pour un stockage illimité et gratuit. Continuer quand même ?");
+        if(!ok) return;
+      }
+ 
+      submitBtn.innerText = cloudReady ? "Envoi vers le cloud..." : "Publication en cours...";
+      submitBtn.disabled = true;
+ 
+      try {
+        let resourceType = type === 'story' ? 'image' : 'video';
+        let fileUrl = await uploadFileToCloud(file, resourceType);
+        if (!fileUrl) {
+          // Pas de cloud configuré : on garde le fichier en local (base64)
+          fileUrl = await readFileAsDataURL(file);
+        }
+ 
+        if(type === 'video') {
+          let thumb = await generateVideoThumbnail(fileUrl);
+          videos.unshift({
+            id: Date.now(), title: title, channel: currentChannel.name, channelId: currentChannel.id,
+            subs: "0 abonnés", views: "1 vue", category: category, type: "video",
+            sourceType: cloudReady ? "cloud" : "local", url: fileUrl,
+            thumb: thumb || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500",
+            likes: 0, comments: []
+          });
+        } else if(type === 'short') {
+          shorts.unshift({
+            id: Date.now(), title: title, channel: currentChannel.handle, channelId: currentChannel.id,
+            url: fileUrl, sourceType: cloudReady ? "cloud" : "local",
+            likes: 0, audio: "Son original - " + currentChannel.name, isAd: false, comments: []
+          });
+        } else if(type === 'story') {
+          stories.unshift({ id: Date.now(), name: currentChannel.name, title: title, bg: fileUrl });
+        }
+ 
+        saveToStorage();
+        closeModal('create-modal');
+        resetCreateForm();
+        alert("Publication réussie sur VibePulse ! 🚀" + (cloudReady ? " (hébergée sur le cloud)" : ""));
+        renderHome();
+        renderStories();
+      } catch(err) {
+        console.error(err);
+        alert("Une erreur est survenue pendant la publication : " + err.message);
+      } finally {
+        submitBtn.innerText = originalText;
+        submitBtn.disabled = false;
+      }
+    }
+ 
+    function createNewAccount() {
+      let name = document.getElementById('new-acc-name').value;
+      if(!name) return;
+      let newAcc = {
+        name: name,
+        handle: "@" + name.toLowerCase().replace(/\s+/g, '_'),
+        id: "c_" + Date.now()
+      };
+      accounts.push(newAcc);
+      currentChannel = newAcc;
+      saveToStorage();
+      updateUserUI();
+      closeModal('account-modal');
+      alert("Nouveau compte créé et activé !");
+    }
+ 
+    // --- SYSTÈME DE MESSAGERIE, AMIS ET APPELS ---
+    function ensureFriendExists(name) {
+      if(!friends.some(f => f.name === name)) {
+        friends.push({
+          name: name,
+          handle: "@" + name.toLowerCase().replace(/\s+/g, '_')
+        });
+      }
+      if(!chatHistories[name]) {
+        chatHistories[name] = [
+          { sender: "received", text: `Discussion commencée avec ${name} !` }
+        ];
+      }
+      saveToStorage();
+    }
+ 
+    function openFriendsList() {
+      closeMobileSidebarIfOpen();
+      let widget = document.getElementById('chat-widget');
+      widget.classList.add('active');
+      renderChatContactBar();
+      selectChatFriend(activeChatFriendName);
+    }
+ 
+    function renderChatContactBar() {
+      let bar = document.getElementById('chat-contact-bar');
+      bar.innerHTML = '';
+      friends.forEach(f => {
+        let isActive = f.name === activeChatFriendName;
+        bar.innerHTML += `
+          <div class="chat-contact-item ${isActive ? 'active' : ''}" onclick="selectChatFriend('${f.name}')">
+            <i class="fa-solid fa-user"></i> ${f.name}
+          </div>
+        `;
+      });
+    }
+ 
+    function selectChatFriend(name) {
+      ensureFriendExists(name);
+      activeChatFriendName = name;
+      document.getElementById('chat-title').innerText = "Chat - " + name;
+      renderChatContactBar();
+      renderChatMessages();
+    }
+ 
+    function renderChatMessages() {
+      let msgContainer = document.getElementById('chat-messages');
+      msgContainer.innerHTML = '';
+      let history = chatHistories[activeChatFriendName] || [];
+      history.forEach(m => {
+        msgContainer.innerHTML += `<div class="msg ${m.sender}">${m.text}</div>`;
+      });
+      msgContainer.scrollTop = msgContainer.scrollHeight;
+    }
+ 
+    function sendChatMessage() {
+      let input = document.getElementById('chat-widget-input');
+      let text = input.value.trim();
+      if(!text) return;
+ 
+      addMessageToHistory(activeChatFriendName, 'sent', text);
+ 
+      if (socket) socket.emit('send_message', { text: text, sender: currentChannel.name, to: activeChatFriendName });
+ 
+      renderChatMessages();
+      input.value = '';
+    }
+ 
+    function addMessageToHistory(friendName, sender, text) {
+      if(!chatHistories[friendName]) chatHistories[friendName] = [];
+      chatHistories[friendName].push({ sender: sender, text: text });
+      saveToStorage();
+    }
+ 
+    function promptAddFriend() {
+      let name = prompt("Entrez le pseudo ou le nom de la personne à ajouter :");
+      if(name && name.trim()) {
+        ensureFriendExists(name.trim());
+        selectChatFriend(name.trim());
+        alert(`${name.trim()} a été ajouté à vos contacts !`);
+      }
+    }
+ 
+    function startChatWithActiveChannel() {
+      let name = document.getElementById('channel-page-name').innerText;
+      ensureFriendExists(name);
+      openFriendsList();
+      selectChatFriend(name);
+    }
+ 
+    function startChatWithChannelName(name) {
+      ensureFriendExists(name);
+      openFriendsList();
+      selectChatFriend(name);
+    }
+ 
+    function startCallFromProfile() {
+      let name = document.getElementById('channel-page-name').innerText;
+      startCall(name);
+    }
+ 
+    function startCallCurrentContact() {
+      startCall(activeChatFriendName);
+    }
+ 
+    // --- Appels VRAIMENT device-to-device via WebRTC, signalés par Socket.IO.
+    // Nécessite d'avoir renseigné SIGNALING_SERVER_URL avec un serveur
+    // relais déployé (voir signaling-server.js fourni séparément).
+    // Sans serveur, l'appel bascule automatiquement en mode démo locale.
+    async function createPeerConnection(remoteName) {
+      peerConnection = new RTCPeerConnection(RTC_CONFIG);
+      try {
+        localMediaStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        localMediaStream.getTracks().forEach(track => peerConnection.addTrack(track, localMediaStream));
+      } catch (e) {
+        console.warn("Micro indisponible :", e);
+      }
+      peerConnection.ontrack = (event) => {
+        let audioEl = document.getElementById('call-remote-audio');
+        if (audioEl) audioEl.srcObject = event.streams[0];
+      };
+      peerConnection.onicecandidate = (event) => {
+        if (event.candidate && socket) {
+          socket.emit('webrtc_ice_candidate', { to: remoteName, from: currentChannel.name, candidate: event.candidate });
+        }
+      };
+      return peerConnection;
+    }
+ 
+    async function handleRemoteOffer(data) {
+      await createPeerConnection(data.from);
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+      let answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+      socket.emit('webrtc_answer', { to: data.from, from: currentChannel.name, answer: answer });
+    }
+ 
+    function startCall(contactName) {
+      if (!contactName) return;
+      ensureFriendExists(contactName);
+      currentCallContact = contactName;
+      currentCallIsIncoming = false;
+ 
+      let overlay = document.getElementById('call-overlay');
+      overlay.classList.add('active');
+      document.getElementById('call-type-label').innerText = 'Appel sortant';
+      document.getElementById('call-user-name').innerText = contactName;
+      document.getElementById('call-status-text').innerText = "Ça sonne...";
+      document.getElementById('call-avatar-circle').innerText = contactName.substring(0,2).toUpperCase();
+      document.getElementById('call-outgoing-controls').style.display = 'flex';
+      document.getElementById('call-incoming-controls').style.display = 'none';
+ 
+      if (socket && socket.connected) {
+        socket.emit('call_user', { to: contactName, from: currentChannel.name, fromId: currentChannel.id });
+        createPeerConnection(contactName).then(async () => {
+          let offer = await peerConnection.createOffer();
+          await peerConnection.setLocalDescription(offer);
+          socket.emit('webrtc_offer', { to: contactName, from: currentChannel.name, offer: offer });
+        });
+      }
+ 
+      if(callTimer) clearTimeout(callTimer);
+      callTimer = setTimeout(() => {
+        if (!socket || !socket.connected) {
+          document.getElementById('call-status-text').innerText =
+            "Serveur d'appel non connecté — configure l'adresse du serveur de signalisation.";
+        } else {
+          document.getElementById('call-status-text').innerText = "En attente de réponse...";
+        }
+      }, 2500);
+    }
+ 
+    function receiveIncomingCall(data) {
+      ensureFriendExists(data.from);
+      currentCallContact = data.from;
+      currentCallIsIncoming = true;
+ 
+      let overlay = document.getElementById('call-overlay');
+      overlay.classList.add('active');
+      document.getElementById('call-type-label').innerText = 'Appel entrant';
+      document.getElementById('call-user-name').innerText = data.from;
+      document.getElementById('call-status-text').innerText = "vous appelle...";
+      document.getElementById('call-avatar-circle').innerText = data.from.substring(0,2).toUpperCase();
+      document.getElementById('call-outgoing-controls').style.display = 'none';
+      document.getElementById('call-incoming-controls').style.display = 'flex';
+ 
+      addNotification(`📞 Appel entrant de <strong>${data.from}</strong>`, 'fa-phone');
+      showBrowserNotification('Appel entrant - VibePulse', `${data.from} vous appelle`);
+      playRingSound();
+    }
+ 
+    function acceptIncomingCall() {
+      document.getElementById('call-status-text').innerText = "Connecté (00:01)";
+      document.getElementById('call-outgoing-controls').style.display = 'flex';
+      document.getElementById('call-incoming-controls').style.display = 'none';
+      if (socket && currentCallContact) {
+        socket.emit('call_response', { to: currentCallContact, accepted: true, from: currentChannel.name });
+      }
+      if (currentCallContact) addMessageToHistory(currentCallContact, 'system', "📞 Appel accepté");
+    }
+ 
+    function declineIncomingCall() {
+      if (socket && currentCallContact) {
+        socket.emit('call_response', { to: currentCallContact, accepted: false, from: currentChannel.name });
+      }
+      if (currentCallContact) addMessageToHistory(currentCallContact, 'system', "📞 Appel refusé");
+      endCall();
+    }
+ 
+    function handleCallResponse(data) {
+      if (currentCallContact !== data.from) return;
+      if (data.accepted) {
+        document.getElementById('call-status-text').innerText = "Connecté (00:01)";
+        addMessageToHistory(currentCallContact, 'system', "📞 Appel accepté");
+      } else {
+        document.getElementById('call-status-text').innerText = "Appel refusé";
+        addMessageToHistory(currentCallContact, 'system', "📞 Appel refusé");
+        setTimeout(endCall, 1500);
+      }
+    }
+ 
+    function endCall() {
+      if(callTimer) clearTimeout(callTimer);
+      if (currentCallContact && socket) {
+        socket.emit('end_call', { to: currentCallContact, from: currentChannel.name });
+      }
+      if (currentCallContact) {
+        addMessageToHistory(currentCallContact, 'system', "📞 Appel terminé");
+      }
+      if (peerConnection) { peerConnection.close(); peerConnection = null; }
+      if (localMediaStream) { localMediaStream.getTracks().forEach(t => t.stop()); localMediaStream = null; }
+      document.getElementById('call-overlay').classList.remove('active');
+      currentCallContact = null;
+      currentCallIsIncoming = false;
+    }
+ 
+    function closeChatWidget() {
+      document.getElementById('chat-widget').classList.remove('active');
+    }
+ 
+    function sendLiveChatMessage() {
+      let input = document.getElementById('live-chat-input');
+      if(!input.value.trim()) return;
+      let chat = document.getElementById('live-chat');
+      chat.innerHTML += `<p><strong>${currentChannel.handle}:</strong> ${input.value}</p>`;
+      input.value = '';
+      chat.scrollTop = chat.scrollHeight;
+    }
+ 
+    function startOwnWebcamLive() {
+      alert("Connexion à la caméra pour votre Live...");
+    }
+ 
+    function toggleTheme() {
+      document.body.classList.toggle('light-theme');
+    }
+ 
+    function closeMiniPlayer() {
+      document.getElementById('mini-player').classList.remove('active');
+    }
+  </script>
+</body>
+</html>
