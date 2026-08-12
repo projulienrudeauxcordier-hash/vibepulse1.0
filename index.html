@@ -1074,31 +1074,14 @@
     }
 
     async function publishLocalCatalogToServer() {
-      const batchSize = 1000;
-      let sent = 0;
-
-      for (let i = 0; i < videos.length; i += batchSize) {
-        const batch = videos.slice(i, i + batchSize);
-        const res = await fetch('/api/catalog/merge', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ videos: batch, shorts: [] })
-        });
-        if (!res.ok) throw new Error('Erreur pendant la publication du catalogue vidéo.');
-        sent += batch.length;
+      try {
+        const ytVideos = videos.filter(v => v.sourceType === 'youtube' && v.youtubeId);
+        const ytShorts = shorts.filter(s => s.sourceType === 'youtube' && s.youtubeId);
+        await vpSyncExistingYouTubeCatalog();
+        alert(`Catalogue YouTube public synchronisé : ${ytVideos.length.toLocaleString('fr-FR')} vidéos + ${ytShorts.length.toLocaleString('fr-FR')} Shorts.`);
+      } catch (e) {
+        alert('Synchronisation publique impossible : ' + (e?.message || e));
       }
-
-      for (let i = 0; i < shorts.length; i += batchSize) {
-        const batch = shorts.slice(i, i + batchSize);
-        const res = await fetch('/api/catalog/merge', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ videos: [], shorts: batch })
-        });
-        if (!res.ok) throw new Error('Erreur pendant la publication du catalogue Shorts.');
-      }
-
-      alert(`Catalogue public mis à jour : ${sent.toLocaleString('fr-FR')} vidéos + ${shorts.length.toLocaleString('fr-FR')} Shorts.`);
     }
 
     let currentViewingVideo = null;
@@ -1679,6 +1662,55 @@
       input.value = '';
     }
  
+
+    // =========================================================
+    // SYNCHRONISATION PUBLIQUE AUTOMATIQUE
+    // =========================================================
+    let vpPublicSyncTimer = null;
+
+    function vpServerAvailable() {
+      return location.protocol === 'http:' || location.protocol === 'https:';
+    }
+
+    async function vpSyncPublicContent(videosToSync = [], shortsToSync = []) {
+      if (!vpServerAvailable()) return false;
+      if (!videosToSync.length && !shortsToSync.length) return true;
+      try {
+        const res = await fetch('/api/catalog/merge', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ videos: videosToSync, shorts: shortsToSync })
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return true;
+      } catch (e) {
+        console.warn('Sync public indisponible:', e);
+        return false;
+      }
+    }
+
+    function vpQueuePublicSync(videosToSync = [], shortsToSync = []) {
+      clearTimeout(vpPublicSyncTimer);
+      vpPublicSyncTimer = setTimeout(() => {
+        vpSyncPublicContent(videosToSync, shortsToSync).catch(() => {});
+      }, 250);
+    }
+
+    async function vpSyncExistingYouTubeCatalog() {
+      if (!vpServerAvailable()) return;
+      const ytVideos = videos.filter(v => v.sourceType === 'youtube' && v.youtubeId);
+      const ytShorts = shorts.filter(s => s.sourceType === 'youtube' && s.youtubeId);
+      const batchSize = 250;
+
+      for (let i = 0; i < ytVideos.length; i += batchSize) {
+        await vpSyncPublicContent(ytVideos.slice(i, i + batchSize), []);
+      }
+      for (let i = 0; i < ytShorts.length; i += batchSize) {
+        await vpSyncPublicContent([], ytShorts.slice(i, i + batchSize));
+      }
+    }
+
+
     // --- RENDU ACCUEIL ---
     function renderHome() {
       let container = document.getElementById('structured-home-container');
@@ -2771,6 +2803,8 @@
 
         let addedVideos = 0;
         let addedShorts = 0;
+        const newlyAddedVideos = [];
+        const newlyAddedShorts = [];
 
         for (let i = 0; i < videoIds.length; i += 50) {
           const chunk = videoIds.slice(i, i + 50);
@@ -2816,21 +2850,25 @@
             };
 
             if (isShort) {
-              shorts.unshift({
+              const importedShort = {
                 ...base,
                 channel: '@' + channelTitle.replace(/\s+/g, '').toLowerCase(),
                 audio: "Son original - " + channelTitle,
                 isAd: false
-              });
+              };
+              shorts.unshift(importedShort);
+              newlyAddedShorts.push(importedShort);
               addedShorts++;
             } else {
-              videos.unshift({
+              const importedVideo = {
                 ...base,
                 subs: "Importé",
                 views: (vid.statistics?.viewCount || '0') + " vues",
                 category: "Divertissement",
                 type: "video"
-              });
+              };
+              videos.unshift(importedVideo);
+              newlyAddedVideos.push(importedVideo);
               addedVideos++;
             }
 
@@ -2844,6 +2882,9 @@
         saveToStorage();
         renderHome();
         renderStories();
+
+        // Nouveau : rendre automatiquement les imports visibles à tous.
+        vpQueuePublicSync(newlyAddedVideos, newlyAddedShorts);
 
         status.innerText =
           `✅ ${channelTitle} : ${addedVideos} vidéo(s) + ${addedShorts} Short(s) importé(s).`;
