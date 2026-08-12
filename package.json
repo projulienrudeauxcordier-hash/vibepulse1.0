@@ -1,0 +1,17 @@
+{
+  "name": "vibepulse-server",
+  "version": "1.0.0",
+  "private": true,
+  "main": "vibepulse-server.js",
+  "scripts": {
+    "start": "node vibepulse-server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1"
+  }
+}
